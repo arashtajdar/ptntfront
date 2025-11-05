@@ -4,12 +4,44 @@ import api from '../services/api'
 
 const list = ref([])
 const loading = ref(false)
+const page = ref(1)
+const per_page = ref(10)
+const total = ref(0)
+const last_page = ref(1)
+const search = ref('')
+const filter_stats = ref('correct')
 
 async function load() {
   loading.value = true
-  const res = await api.listRespondedQuestions()
-  list.value = res || []
+  const res = await api.listQuestions(page.value, per_page.value, search.value, filter_stats.value)
+  if (res && res.data) {
+    list.value = res.data
+    total.value = res.total
+    last_page.value = res.last_page
+  } else {
+    list.value = []
+    total.value = 0
+    last_page.value = 1
+  }
   loading.value = false
+}
+
+function doSearch() {
+  page.value = 1
+  load()
+}
+
+function setFilter(val) {
+  filter_stats.value = val
+  page.value = 1
+  load()
+}
+
+function goPage(p) {
+  if (p >= 1 && p <= last_page.value) {
+    page.value = p
+    load()
+  }
 }
 
 onMounted(load)
@@ -18,14 +50,34 @@ onMounted(load)
 <template>
   <div class="card">
     <h2 class="card-title">My Responded Questions</h2>
+    <div class="search-bar">
+      <input v-model="search" @keyup.enter="doSearch" placeholder="Search text..." class="input" />
+      <button class="btn" @click="doSearch">Search</button>
+      <select v-model="filter_stats" @change="setFilter(filter_stats)" class="input" style="margin-left:8px">
+        <option value="correct">Correct</option>
+        <option value="wrong">Wrong</option>
+        <option value="none">None</option>
+      </select>
+    </div>
     <div v-if="loading" class="loading">Loading...</div>
-    <div v-if="list.length === 0" class="empty">No answered questions yet.</div>
+    <div v-if="list.length === 0 && !loading" class="empty">No answered questions yet.</div>
     <ul class="resp-list">
       <li v-for="q in list" :key="q.id" class="resp-list-item">
         <div><strong>#{{ q.id }}</strong> {{ q.text }}</div>
-        <div class="meta">Answer: {{ q.answer }} | Last Attempt: {{ q.last_attempted }}</div>
+        <div v-if="q.image" style="margin:6px 0"><img :src="'/public/images/'+q.image" alt="question image" style="max-width:120px;border-radius:6px" /></div>
+        <div class="meta">
+          Answer: {{ q.answer }}
+          <span v-if="q.correct_count !== undefined"> | Correct: {{ q.correct_count }}</span>
+          <span v-if="q.wrong_count !== undefined"> | Wrong: {{ q.wrong_count }}</span>
+          <span v-if="q.last_attempted"> | Last Attempt: {{ q.last_attempted }}</span>
+        </div>
       </li>
     </ul>
+    <div v-if="last_page > 1" class="pagination">
+      <button class="btn" @click="goPage(page-1)" :disabled="page===1">Prev</button>
+      <span>Page {{ page }} / {{ last_page }}</span>
+      <button class="btn" @click="goPage(page+1)" :disabled="page===last_page">Next</button>
+    </div>
   </div>
 </template>
 
@@ -38,11 +90,24 @@ onMounted(load)
   max-width: 600px;
   margin: 0 auto;
 }
-.card-title {
-  margin-bottom: 24px;
-  color: #007acc;
-  text-align: center;
-}
+  .card-title {
+    margin-bottom: 24px;
+    color: #007acc;
+    text-align: center;
+  }
+  .search-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 18px;
+    align-items: center;
+    justify-content: center;
+  }
+  .input {
+    padding: 6px 10px;
+    border: 1px solid #e0e6ed;
+    border-radius: 5px;
+    font-size: 1rem;
+  }
 .resp-list {
   list-style: none;
   padding: 0;

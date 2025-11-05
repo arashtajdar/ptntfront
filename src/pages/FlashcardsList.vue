@@ -7,13 +7,20 @@ const page = ref(1)
 const per_page = ref(10)
 const pagination = ref(null)
 const loading = ref(false)
+const progress = ref(null)
 
 async function load() {
   loading.value = true
-  const res = await api.listFlashcards(page.value, per_page.value)
-  if (res && res.translations) {
-    list.value = res.translations
-    pagination.value = res.pagination
+  const [flashRes, progRes] = await Promise.all([
+    api.listFlashcards(page.value, per_page.value),
+    api.getOverallProgress()
+  ])
+  if (flashRes && flashRes.translations) {
+    list.value = flashRes.translations
+    pagination.value = flashRes.pagination
+  }
+  if (progRes && typeof progRes.percentage !== 'undefined') {
+    progress.value = progRes.percentage
   }
   loading.value = false
 }
@@ -25,6 +32,13 @@ onMounted(load)
   <div class="card">
     <h2 class="card-title">All Flashcards</h2>
     <div v-if="loading" class="loading">Loading...</div>
+    <div v-if="progress !== null" class="progress-bar">
+      <span>Progress: </span>
+      <span class="progress-value">{{ progress }}%</span>
+      <div class="progress-track">
+        <div class="progress-fill" :style="{width: progress + '%'}"></div>
+      </div>
+    </div>
     <div v-if="list.length === 0" class="empty">No flashcards</div>
     <ul class="flashcard-list">
       <li v-for="t in list" :key="t.id" class="flashcard-list-item">
@@ -99,5 +113,30 @@ onMounted(load)
   color: #888;
   text-align: center;
   margin-bottom: 12px;
+}
+.progress-bar {
+  margin-bottom: 18px;
+  text-align: center;
+}
+.progress-value {
+  font-weight: bold;
+  color: #007acc;
+  margin-left: 4px;
+}
+.progress-track {
+  width: 100%;
+  max-width: 300px;
+  height: 10px;
+  background: #e0e6ed;
+  border-radius: 5px;
+  margin: 8px auto 0 auto;
+  position: relative;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: #007acc;
+  border-radius: 5px;
+  transition: width 0.3s;
 }
 </style>
