@@ -1,5 +1,4 @@
-const BASE_URL = 'http://localhost:8000/api'
-
+const BASE_URL = import.meta.env.VITE_BASE_URL
 function authHeaders() {
   const token = localStorage.getItem('auth_token')
   return token ? { Authorization: `Bearer ${token}` } : {}
