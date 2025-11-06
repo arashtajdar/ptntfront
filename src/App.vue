@@ -5,6 +5,14 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 const token = ref(localStorage.getItem('auth_token'))
 
+const menuItems = [
+  { label: 'Flashcard', command: () => router.push('/flashcard') },
+  { label: 'All Flashcards', command: () => router.push('/flashcards') },
+  { label: 'Quiz', command: () => router.push('/quiz') },
+  { label: 'My Questions', command: () => router.push('/questions-responded') },
+  { label: 'My Flashcards', command: () => router.push('/flashcards-responded') }
+]
+
 function logout() {
   localStorage.removeItem('auth_token')
   token.value = null
@@ -16,20 +24,14 @@ function logout() {
   <div class="app-bg">
     <header class="app-header">
       <h2 class="app-title">Patente Front</h2>
-      <nav class="app-nav">
-        <router-link to="/flashcard">Flashcard</router-link>
-        <router-link to="/flashcards">All Flashcards</router-link>
-        <router-link to="/quiz">Quiz</router-link>
-        <router-link to="/questions-responded">My Questions</router-link>
-        <router-link to="/flashcards-responded">My Flashcards</router-link>
-      </nav>
+      <Menubar :model="menuItems" class="main-menu" />
       <div class="app-auth">
         <template v-if="token">
-          <button class="btn" @click="logout">Logout</button>
+          <Button label="Logout" icon="pi pi-sign-out" @click="logout" severity="danger" />
         </template>
         <template v-else>
-          <router-link to="/login">Login</router-link>
-          <router-link to="/register">Register</router-link>
+          <Button label="Login" icon="pi pi-sign-in" @click="() => router.push('/login')" text />
+          <Button label="Register" icon="pi pi-user-plus" @click="() => router.push('/register')" text />
         </template>
       </div>
     </header>
@@ -69,22 +71,11 @@ function logout() {
   font-size: 1.5rem;
   color: var(--primary);
 }
-.app-nav {
-  display: flex;
-  gap: 16px;
+.main-menu {
+  flex: 1;
   margin-left: 24px;
-}
-.app-nav a {
-  text-decoration: none;
-  color: var(--primary);
-  font-weight: 500;
-  padding: 4px 10px;
-  border-radius: var(--radius);
-  transition: background 0.2s;
-}
-.app-nav a.router-link-active {
-  background: var(--primary);
-  color: #fff;
+  background: transparent;
+  border: none;
 }
 .app-auth {
   margin-left: auto;

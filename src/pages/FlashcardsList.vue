@@ -1,6 +1,9 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import api from '../services/api'
+import Card from 'primevue/card'
+import ProgressBar from 'primevue/progressbar'
+import Paginator from 'primevue/paginator'
 
 const list = ref([])
 const page = ref(1)
@@ -25,48 +28,43 @@ async function load() {
   loading.value = false
 }
 
+function onPageChange(e) {
+  page.value = e.page + 1
+  load()
+}
+
 onMounted(load)
 </script>
 
 <template>
-  <div class="card">
-    <h2 class="card-title">All Flashcards</h2>
-    <div v-if="loading" class="loading">Loading...</div>
-    <div v-if="progress !== null" class="progress-bar">
-      <span>Progress: </span>
-      <span class="progress-value">{{ progress }}%</span>
-      <div class="progress-track">
-        <div class="progress-fill" :style="{width: progress + '%'}"></div>
+  <Card class="main-card">
+    <template #title>
+      All Flashcards
+    </template>
+    <template #content>
+      <div v-if="loading" class="loading">Loading...</div>
+      <div v-if="progress !== null" class="progress-bar">
+        <span>Progress:</span>
+        <ProgressBar :value="progress" showValue />
       </div>
-    </div>
-    <div v-if="list.length === 0" class="empty">No flashcards</div>
-    <ul class="flashcard-list">
-      <li v-for="t in list" :key="t.id" class="flashcard-list-item">
-        <div><strong>{{ t.text_en }}</strong> — {{ t.text_fa }} (<em>{{ t.text_it }}</em>)</div>
-        <div class="meta">Score: {{ t.score ?? 0 }} | Attempts: {{ t.attempts ?? 0 }}</div>
-      </li>
-    </ul>
-    <div class="pagination">
-      <button class="btn" @click="page>1 && (page--, load())" :disabled="page===1">Prev</button>
-      <span>Page {{ page }}</span>
-      <button class="btn" @click="pagination && page < pagination.last_page && (page++, load())" :disabled="pagination && page >= pagination.last_page">Next</button>
-    </div>
-  </div>
+      <div v-if="list.length === 0" class="empty">No flashcards</div>
+      <ul class="flashcard-list">
+        <li v-for="t in list" :key="t.id" class="flashcard-list-item">
+          <div><strong>{{ t.text_en }}</strong> — {{ t.text_fa }} (<em>{{ t.text_it }}</em>)</div>
+          <div class="meta">Score: {{ t.score ?? 0 }} | Attempts: {{ t.attempts ?? 0 }}</div>
+        </li>
+      </ul>
+      <div v-if="pagination && pagination.last_page > 1" class="pagination">
+        <Paginator :rows="1" :totalRecords="pagination.last_page" :first="page-1" :pageLinkSize="5" @page="onPageChange" />
+      </div>
+    </template>
+  </Card>
 </template>
 
 <style scoped>
-.card {
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  padding: 32px 24px;
+.main-card {
   max-width: 600px;
   margin: 0 auto;
-}
-.card-title {
-  margin-bottom: 24px;
-  color: #007acc;
-  text-align: center;
 }
 .flashcard-list {
   list-style: none;
@@ -83,26 +81,9 @@ onMounted(load)
   font-size: 0.95rem;
 }
 .pagination {
-  display: flex;
-  gap: 16px;
-  justify-content: center;
-  align-items: center;
   margin-top: 18px;
-}
-.btn {
-  background: #007acc;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 6px 18px;
-  font-weight: 500;
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  transition: background 0.2s;
-}
-.btn:disabled {
-  background: #b3d6ee;
-  cursor: not-allowed;
+  display: flex;
+  justify-content: center;
 }
 .loading {
   color: #888;
@@ -117,26 +98,5 @@ onMounted(load)
 .progress-bar {
   margin-bottom: 18px;
   text-align: center;
-}
-.progress-value {
-  font-weight: bold;
-  color: #007acc;
-  margin-left: 4px;
-}
-.progress-track {
-  width: 100%;
-  max-width: 300px;
-  height: 10px;
-  background: #e0e6ed;
-  border-radius: 5px;
-  margin: 8px auto 0 auto;
-  position: relative;
-  overflow: hidden;
-}
-.progress-fill {
-  height: 100%;
-  background: #007acc;
-  border-radius: 5px;
-  transition: width 0.3s;
 }
 </style>

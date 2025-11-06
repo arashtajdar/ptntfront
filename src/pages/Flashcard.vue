@@ -1,6 +1,9 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import api from '../services/api'
+import Card from 'primevue/card'
+import ProgressBar from 'primevue/progressbar'
+import Button from 'primevue/button'
 
 const card = ref(null)
 const progress = ref(null)
@@ -45,46 +48,38 @@ onMounted(load)
 </script>
 
 <template>
-  <div class="card">
-    <h2 class="card-title">Flashcard</h2>
-    <div v-if="loading" class="loading">Loading...</div>
-    <div v-if="progress !== null" class="progress-bar">
-      <span>Progress: </span>
-      <span class="progress-value">{{ progress }}%</span>
-      <div class="progress-track">
-        <div class="progress-fill" :style="{width: progress + '%'}"></div>
+  <Card class="main-card">
+    <template #title>
+      Flashcard
+    </template>
+    <template #content>
+      <div v-if="loading" class="loading">Loading...</div>
+      <div v-if="progress !== null" class="progress-bar">
+        <span>Progress:</span>
+        <ProgressBar :value="progress" showValue />
       </div>
-    </div>
-    <div v-if="error" class="error">{{ error }}</div>
-    <div v-if="card" class="flashcard-content">
-      <div class="flashcard-row"><span>Italian:</span> <b>{{ card.text_it }}</b></div>
-      <button class="btn btn-toggle" @click="toggleTrans" style="margin-bottom:12px">{{ showTrans ? 'Hide' : 'Show' }} English & Farsi</button>
-      <div v-if="showTrans">
-        <div class="flashcard-row"><span>English:</span> <b>{{ card.text_en }}</b></div>
-        <div class="flashcard-row"><span>Farsi:</span> <b>{{ card.text_fa }}</b></div>
+      <div v-if="error" class="error">{{ error }}</div>
+      <div v-if="card" class="flashcard-content">
+        <div class="flashcard-row"><span>Italian:</span> <b>{{ card.text_it }}</b></div>
+        <Button class="btn-toggle" @click="toggleTrans" style="margin-bottom:12px" :label="showTrans ? 'Hide English & Farsi' : 'Show English & Farsi'" text />
+        <div v-if="showTrans">
+          <div class="flashcard-row"><span>English:</span> <b>{{ card.text_en }}</b></div>
+          <div class="flashcard-row"><span>Farsi:</span> <b>{{ card.text_fa }}</b></div>
+        </div>
+        <div class="flashcard-row"><small>Score: {{ card.score ?? 0 }}</small></div>
+        <div class="flashcard-actions">
+          <Button label="Correct" icon="pi pi-check" @click="answer('correct')" severity="success" />
+          <Button label="Wrong" icon="pi pi-times" @click="answer('wrong')" severity="danger" text />
+        </div>
       </div>
-      <div class="flashcard-row"><small>Score: {{ card.score ?? 0 }}</small></div>
-      <div class="flashcard-actions">
-        <button class="btn" @click="answer('correct')">Correct</button>
-        <button class="btn btn-alt" @click="answer('wrong')">Wrong</button>
-      </div>
-    </div>
-  </div>
+    </template>
+  </Card>
 </template>
 
 <style scoped>
-.card {
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  padding: 32px 24px;
+.main-card {
   max-width: 400px;
   margin: 0 auto;
-}
-.card-title {
-  margin-bottom: 24px;
-  color: #007acc;
-  text-align: center;
 }
 .flashcard-content {
   margin-bottom: 18px;
@@ -99,34 +94,6 @@ onMounted(load)
   margin-top: 18px;
   justify-content: center;
 }
-.btn {
-  background: #007acc;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 8px 20px;
-  font-weight: 500;
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  transition: background 0.2s;
-}
-/* ...existing styles... */
-.btn-alt {
-  background: #eee;
-  color: #007acc;
-}
-.btn-toggle {
-  background: #f7f9fc;
-  color: #007acc;
-  border: 1px solid #e0e6ed;
-  font-size: 0.98rem;
-  padding: 6px 14px;
-  margin-top: 8px;
-}
-.btn:hover {
-  background: #005fa3;
-}
-/* ...existing styles... */
 .loading {
   color: #888;
   text-align: center;
@@ -140,26 +107,5 @@ onMounted(load)
 .progress-bar {
   margin-bottom: 18px;
   text-align: center;
-}
-.progress-value {
-  font-weight: bold;
-  color: #007acc;
-  margin-left: 4px;
-}
-.progress-track {
-  width: 100%;
-  max-width: 300px;
-  height: 10px;
-  background: #e0e6ed;
-  border-radius: 5px;
-  margin: 8px auto 0 auto;
-  position: relative;
-  overflow: hidden;
-}
-.progress-fill {
-  height: 100%;
-  background: #007acc;
-  border-radius: 5px;
-  transition: width 0.3s;
 }
 </style>

@@ -1,6 +1,8 @@
 <script setup>
 import { ref } from 'vue'
 import api from '../services/api'
+import Card from 'primevue/card'
+import Button from 'primevue/button'
 
 const questions = ref([])
 const loading = ref(false)
@@ -41,46 +43,44 @@ async function submit() {
 <template>
   <div>
     <h3>Quiz</h3>
-    <div class="card quiz-card">
-      <button class="btn" @click="gen">Generate Quiz (30 questions)</button>
-      <div v-if="loading" class="loading">Loading...</div>
-      <div v-if="questions.length">
-        <div class="quiz-qbox">
-          <div class="quiz-qnum">Question {{ current+1 }} / {{ questions.length }}</div>
-          <div class="quiz-qtext">{{ questions[current].text }}</div>
-          <div v-if="questions[current].image" class="quiz-img">
-            <img :src="'/public/images/'+questions[current].image" alt="question image" />
+    <Card class="quiz-card">
+      <template #content>
+        <Button label="Generate Quiz (30 questions)" icon="pi pi-refresh" @click="gen" class="p-button-sm" />
+        <div v-if="loading" class="loading">Loading...</div>
+        <div v-if="questions.length">
+          <div class="quiz-qbox">
+            <div class="quiz-qnum">Question {{ current+1 }} / {{ questions.length }}</div>
+            <div class="quiz-qtext">{{ questions[current].text }}</div>
+            <div v-if="questions[current].image" class="quiz-img">
+              <img :src="'/public/images/'+questions[current].image" alt="question image" />
+            </div>
+            <div class="quiz-ans-btns">
+              <Button label="V" icon="pi pi-check" @click="answer('V')" :disabled="questions[current]._answer === 'V'" severity="success" />
+              <Button label="F" icon="pi pi-times" @click="answer('F')" :disabled="questions[current]._answer === 'F'" severity="danger" text />
+            </div>
           </div>
-          <div class="quiz-ans-btns">
-            <button class="btn" @click="answer('V')" :disabled="questions[current]._answer === 'V'">V</button>
-            <button class="btn btn-alt" @click="answer('F')" :disabled="questions[current]._answer === 'F'">F</button>
-          </div>
-        </div>
-        <div class="quiz-pagination">
-          <button class="btn" @click="go(current-1)" :disabled="current===0">Prev</button>
-          <span class="quiz-goto">Go to:
-            <span v-for="(q, idx) in questions" :key="q.id">
-              <button class="goto-btn" @click="go(idx)" :class="{active: current===idx}">{{ idx+1 }}</button>
+          <div class="quiz-pagination">
+            <Button label="Prev" icon="pi pi-angle-left" @click="go(current-1)" :disabled="current===0" class="p-button-sm" />
+            <span class="quiz-goto">Go to:
+              <span v-for="(q, idx) in questions" :key="q.id">
+                <Button @click="go(idx)" :class="['goto-btn', {active: current===idx}]" :label="String(idx+1)" text />
+              </span>
             </span>
-          </span>
-          <button class="btn" @click="go(current+1)" :disabled="current===questions.length-1">Next</button>
-          <button class="btn" @click="submit" style="margin-left:auto">Submit</button>
+            <Button label="Next" icon="pi pi-angle-right" @click="go(current+1)" :disabled="current===questions.length-1" class="p-button-sm" />
+            <Button label="Submit" icon="pi pi-send" @click="submit" class="p-button-sm" style="margin-left:auto" />
+          </div>
         </div>
-      </div>
-      <div v-if="result" class="quiz-result">
-        <h4>Result</h4>
-        <pre>{{ result }}</pre>
-      </div>
-    </div>
+        <div v-if="result" class="quiz-result">
+          <h4>Result</h4>
+          <pre>{{ result }}</pre>
+        </div>
+      </template>
+    </Card>
   </div>
 </template>
 
 <style scoped>
-.card.quiz-card {
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  padding: 32px 24px;
+.quiz-card {
   max-width: 600px;
   margin: 0 auto;
 }
@@ -107,25 +107,6 @@ async function submit() {
   justify-content: center;
   margin-top: 12px;
 }
-.btn {
-  background: #007acc;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 8px 20px;
-  font-weight: 500;
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  transition: background 0.2s;
-}
-.btn-alt {
-  background: #eee;
-  color: #007acc;
-}
-.btn:disabled {
-  background: #b3d6ee;
-  cursor: not-allowed;
-}
 .quiz-pagination {
   display: flex;
   align-items: center;
@@ -139,20 +120,9 @@ async function submit() {
   gap: 4px;
   align-items: center;
 }
-.goto-btn {
-  background: #eee;
-  color: #007acc;
-  border: none;
-  border-radius: 3px;
-  padding: 2px 8px;
-  cursor: pointer;
-  font-weight: 500;
-  margin-right: 2px;
-  transition: background 0.2s, color 0.2s;
-}
 .goto-btn.active {
-  background: #007acc;
-  color: #fff;
+  background: #007acc !important;
+  color: #fff !important;
 }
 .loading {
   color: #888;

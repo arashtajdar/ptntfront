@@ -1,6 +1,10 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import api from '../services/api'
+import InputText from 'primevue/inputtext'
+import Button from 'primevue/button'
+import Dropdown from 'primevue/dropdown'
+import Paginator from 'primevue/paginator'
 
 const list = ref([])
 const loading = ref(false)
@@ -10,6 +14,11 @@ const total = ref(0)
 const last_page = ref(1)
 const search = ref('')
 const filter_stats = ref('correct')
+const filterOptions = [
+  { label: 'Correct', value: 'correct' },
+  { label: 'Wrong', value: 'wrong' },
+  { label: 'None', value: 'none' }
+]
 
 async function load() {
   loading.value = true
@@ -37,11 +46,9 @@ function setFilter(val) {
   load()
 }
 
-function goPage(p) {
-  if (p >= 1 && p <= last_page.value) {
-    page.value = p
-    load()
-  }
+function onPageChange(e) {
+  page.value = e.page + 1
+  load()
 }
 
 onMounted(load)
@@ -51,13 +58,9 @@ onMounted(load)
   <div class="card">
     <h2 class="card-title">My Responded Questions</h2>
     <div class="search-bar">
-      <input v-model="search" @keyup.enter="doSearch" placeholder="Search text..." class="input" />
-      <button class="btn" @click="doSearch">Search</button>
-      <select v-model="filter_stats" @change="setFilter(filter_stats)" class="input" style="margin-left:8px">
-        <option value="correct">Correct</option>
-        <option value="wrong">Wrong</option>
-        <option value="none">None</option>
-      </select>
+      <InputText v-model="search" @keyup.enter="doSearch" placeholder="Search text..." class="input" style="width:180px" />
+      <Button label="Search" icon="pi pi-search" @click="doSearch" class="p-button-sm" />
+      <Dropdown v-model="filter_stats" :options="filterOptions" optionLabel="label" optionValue="value" @change="setFilter(filter_stats)" style="margin-left:8px;width:120px" />
     </div>
     <div v-if="loading" class="loading">Loading...</div>
     <div v-if="list.length === 0 && !loading" class="empty">No answered questions yet.</div>
@@ -74,9 +77,7 @@ onMounted(load)
       </li>
     </ul>
     <div v-if="last_page > 1" class="pagination">
-      <button class="btn" @click="goPage(page-1)" :disabled="page===1">Prev</button>
-      <span>Page {{ page }} / {{ last_page }}</span>
-      <button class="btn" @click="goPage(page+1)" :disabled="page===last_page">Next</button>
+      <Paginator :rows="1" :totalRecords="last_page" :first="page-1" :pageLinkSize="5" @page="onPageChange" />
     </div>
   </div>
 </template>
@@ -90,24 +91,24 @@ onMounted(load)
   max-width: 600px;
   margin: 0 auto;
 }
-  .card-title {
-    margin-bottom: 24px;
-    color: #007acc;
-    text-align: center;
-  }
-  .search-bar {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 18px;
-    align-items: center;
-    justify-content: center;
-  }
-  .input {
-    padding: 6px 10px;
-    border: 1px solid #e0e6ed;
-    border-radius: 5px;
-    font-size: 1rem;
-  }
+.card-title {
+  margin-bottom: 24px;
+  color: #007acc;
+  text-align: center;
+}
+.search-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+  align-items: center;
+  justify-content: center;
+}
+.input {
+  padding: 6px 10px;
+  border: 1px solid #e0e6ed;
+  border-radius: 5px;
+  font-size: 1rem;
+}
 .resp-list {
   list-style: none;
   padding: 0;
@@ -131,5 +132,10 @@ onMounted(load)
   color: #888;
   text-align: center;
   margin-bottom: 12px;
+}
+.pagination {
+  margin-top: 18px;
+  display: flex;
+  justify-content: center;
 }
 </style>

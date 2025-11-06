@@ -2,6 +2,9 @@
 import { ref } from 'vue'
 import api from '../services/api'
 import { useRouter } from 'vue-router'
+import Card from 'primevue/card'
+import InputText from 'primevue/inputtext'
+import Button from 'primevue/button'
 
 const router = useRouter()
 const name = ref('')
@@ -26,53 +29,43 @@ async function submit() {
 </script>
 
 <template>
-  <div class="card">
-    <h2 class="card-title">Register</h2>
-    <div v-if="error" class="error">{{ error }}</div>
-    <div class="form-group">
-      <label>Name</label>
-      <input v-model="name" class="input" />
-    </div>
-    <div class="form-group">
-      <label>Email</label>
-      <input v-model="email" type="email" class="input" />
-    </div>
-    <div class="form-group">
-      <label>Password</label>
-      <input v-model="password" type="password" class="input" />
-    </div>
-    <div class="form-group">
-      <label>Confirm Password</label>
-      <input v-model="password_confirmation" type="password" class="input" />
-    </div>
-    <button class="btn" @click="submit">Register</button>
-  </div>
+  <Card class="main-card">
+    <template #title>
+      Register
+    </template>
+    <template #content>
+      <div v-if="error" class="error">{{ error }}</div>
+      <div class="form-group">
+        <label>Name</label>
+        <InputText v-model="name" class="input" />
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <InputText v-model="email" type="email" class="input" />
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <InputText v-model="password" type="password" class="input" />
+      </div>
+      <div class="form-group">
+        <label>Confirm Password</label>
+        <InputText v-model="password_confirmation" type="password" class="input" />
+      </div>
+      <Button label="Register" icon="pi pi-user-plus" @click="submit" class="p-button-sm" />
+    </template>
+  </Card>
 </template>
 
 <style scoped>
-.card {
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  padding: 32px 24px;
+.main-card {
   max-width: 400px;
   margin: 0 auto;
-}
-.card-title {
-  margin-bottom: 24px;
-  color: #007acc;
-  text-align: center;
 }
 .form-group {
   margin-bottom: 18px;
 }
 .input {
-  display: block;
   width: 100%;
-  padding: 8px;
-  border: 1px solid #e0e6ed;
-  border-radius: 5px;
-  font-size: 1rem;
 }
 .error {
   color: #c00;
