@@ -9,6 +9,7 @@ import Dropdown from 'primevue/dropdown'
 import Paginator from 'primevue/paginator'
 import Aura from '@primeuix/themes/aura'
 import 'primeicons/primeicons.css'
+import './assets/base.css'
 
 const app = createApp(App)
 app.use(router)

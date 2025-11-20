@@ -29,39 +29,135 @@ async function submit() {
 </script>
 
 <template>
-  <Card class="main-card">
-    <template #title>
-      Login
-    </template>
-    <template #content>
-      <div v-if="error" class="error">{{ error }}</div>
-      <div class="form-group">
-        <label>Email</label>
-        <InputText v-model="email" type="email" class="input" />
-      </div>
-      <div class="form-group">
-        <label>Password</label>
-        <InputText v-model="password" type="password" class="input" />
-      </div>
-      <Button label="Login" icon="pi pi-sign-in" @click="submit" class="p-button-sm" />
-    </template>
-  </Card>
+  <div class="auth-container">
+    <Card class="auth-card">
+      <template #title>
+        <div class="auth-header">
+          <i class="pi pi-user auth-icon"></i>
+          <span>Welcome Back</span>
+        </div>
+        <p class="auth-subtitle">Sign in to continue your learning journey</p>
+      </template>
+      <template #content>
+        <div v-if="error" class="error-message">
+          <i class="pi pi-exclamation-circle"></i>
+          <span>{{ error }}</span>
+        </div>
+        
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <span class="p-input-icon-left w-full">
+            <i class="pi pi-envelope" />
+            <InputText id="email" v-model="email" type="email" class="w-full" placeholder="you@example.com" />
+          </span>
+        </div>
+        
+        <div class="form-group">
+          <label for="password">Password</label>
+          <span class="p-input-icon-left w-full">
+            <i class="pi pi-lock" />
+            <InputText id="password" v-model="password" type="password" class="w-full" placeholder="••••••••" />
+          </span>
+        </div>
+        
+        <Button label="Sign In" icon="pi pi-sign-in" @click="submit" class="w-full mt-4" size="large" />
+        
+        <div class="auth-footer">
+          <span>Don't have an account?</span>
+          <Button label="Create account" link @click="router.push('/register')" class="p-0 ml-2" />
+        </div>
+      </template>
+    </Card>
+  </div>
 </template>
 
 <style scoped>
-.main-card {
-  max-width: 400px;
-  margin: 0 auto;
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
 }
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+.auth-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.5rem;
+  color: var(--primary-700);
+  margin-bottom: 0.5rem;
+}
+
+.auth-icon {
+  font-size: 1.5rem;
+  color: var(--primary-500);
+}
+
+.auth-subtitle {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  font-weight: 400;
+  margin: 0;
+}
+
 .form-group {
-  margin-bottom: 18px;
+  margin-bottom: 1.5rem;
 }
-.input {
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--text-main);
+  font-size: 0.9rem;
+}
+
+.w-full {
   width: 100%;
 }
-.error {
-  color: #c00;
-  margin-bottom: 12px;
+
+.error-message {
+  background: #fef2f2;
+  color: #ef4444;
+  padding: 0.75rem;
+  border-radius: var(--radius-md);
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  border: 1px solid #fee2e2;
+}
+
+.auth-footer {
+  margin-top: 2rem;
   text-align: center;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+/* Icon positioning fix for PrimeVue InputIcon */
+.p-input-icon-left {
+  position: relative;
+  display: block;
+}
+
+.p-input-icon-left > i {
+  position: absolute;
+  top: 50%;
+  left: 0.75rem;
+  margin-top: -0.5rem;
+  color: var(--text-muted);
+  z-index: 1;
+}
+
+.p-input-icon-left > .p-inputtext {
+  padding-left: 2.5rem !important;
 }
 </style>

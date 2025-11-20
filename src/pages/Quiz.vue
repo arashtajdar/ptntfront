@@ -41,38 +41,121 @@ async function submit() {
 </script>
 
 <template>
-  <div>
-    <h3>Quiz</h3>
+  <div class="quiz-container">
     <Card class="quiz-card">
+      <template #title>
+        <div class="quiz-header">
+          <div class="header-left">
+            <i class="pi pi-question-circle quiz-icon"></i>
+            <span>Quiz Challenge</span>
+          </div>
+          <Button 
+            v-if="!questions.length" 
+            label="Start New Quiz" 
+            icon="pi pi-play" 
+            @click="gen" 
+            severity="primary"
+            rounded
+          />
+        </div>
+      </template>
       <template #content>
-        <Button label="Generate Quiz (30 questions)" icon="pi pi-refresh" @click="gen" class="p-button-sm" />
-        <div v-if="loading" class="loading">Loading...</div>
-        <div v-if="questions.length">
-          <div class="quiz-qbox">
-            <div class="quiz-qnum">Question {{ current+1 }} / {{ questions.length }}</div>
-            <div class="quiz-qtext">{{ questions[current].text }}</div>
-            <div v-if="questions[current].image" class="quiz-img">
-              <img :src="'/public/images/'+questions[current].image" alt="question image" />
+        <div v-if="loading" class="state-container">
+          <i class="pi pi-spin pi-spinner" style="font-size: 2rem; color: var(--primary-500)"></i>
+          <p>Generating questions...</p>
+        </div>
+
+        <div v-else-if="questions.length" class="quiz-content">
+          <div class="progress-indicator">
+            <div class="progress-text">
+              <span>Question {{ current + 1 }}</span>
+              <span class="total">of {{ questions.length }}</span>
             </div>
-            <div class="quiz-ans-btns">
-              <Button label="V" icon="pi pi-check" @click="answer('V')" :disabled="questions[current]._answer === 'V'" severity="success" />
-              <Button label="F" icon="pi pi-times" @click="answer('F')" :disabled="questions[current]._answer === 'F'" severity="danger" text />
+            <ProgressBar :value="((current + 1) / questions.length) * 100" :showValue="false" style="height: 6px" />
+          </div>
+
+          <div class="question-box">
+            <h3 class="question-text">{{ questions[current].text }}</h3>
+            
+            <div v-if="questions[current].image" class="question-image">
+              <img :src="'/public/images/'+questions[current].image" alt="Question Image" />
+            </div>
+
+            <div class="answer-actions">
+              <Button 
+                label="Vero" 
+                icon="pi pi-check" 
+                @click="answer('V')" 
+                :class="['ans-btn', { 'selected-true': questions[current]._answer === 'V' }]"
+                :outlined="questions[current]._answer !== 'V'"
+                severity="success" 
+                size="large"
+              />
+              <Button 
+                label="Falso" 
+                icon="pi pi-times" 
+                @click="answer('F')" 
+                :class="['ans-btn', { 'selected-false': questions[current]._answer === 'F' }]"
+                :outlined="questions[current]._answer !== 'F'"
+                severity="danger" 
+                size="large"
+              />
             </div>
           </div>
-          <div class="quiz-pagination">
-            <Button label="Prev" icon="pi pi-angle-left" @click="go(current-1)" :disabled="current===0" class="p-button-sm" />
-            <span class="quiz-goto">Go to:
-              <span v-for="(q, idx) in questions" :key="q.id">
-                <Button @click="go(idx)" :class="['goto-btn', {active: current===idx}]" :label="String(idx+1)" text />
-              </span>
-            </span>
-            <Button label="Next" icon="pi pi-angle-right" @click="go(current+1)" :disabled="current===questions.length-1" class="p-button-sm" />
-            <Button label="Submit" icon="pi pi-send" @click="submit" class="p-button-sm" style="margin-left:auto" />
+
+          <div class="quiz-navigation">
+            <Button 
+              icon="pi pi-arrow-left" 
+              @click="go(current-1)" 
+              :disabled="current === 0" 
+              text 
+              rounded 
+              aria-label="Previous"
+            />
+            
+            <div class="pagination-dots">
+              <div 
+                v-for="(q, idx) in questions" 
+                :key="q.id"
+                class="dot"
+                :class="{ 
+                  active: current === idx,
+                  answered: q._answer
+                }"
+                @click="go(idx)"
+              ></div>
+            </div>
+
+            <Button 
+              icon="pi pi-arrow-right" 
+              @click="go(current+1)" 
+              :disabled="current === questions.length - 1" 
+              text 
+              rounded 
+              aria-label="Next"
+            />
+          </div>
+
+          <div class="submit-section" v-if="questions.some(q => q._answer)">
+            <Button 
+              label="Submit Quiz" 
+              icon="pi pi-send" 
+              @click="submit" 
+              severity="contrast"
+              raised
+            />
           </div>
         </div>
-        <div v-if="result" class="quiz-result">
-          <h4>Result</h4>
-          <pre>{{ result }}</pre>
+
+        <div v-if="result" class="result-container">
+          <div class="result-header">
+            <i class="pi pi-chart-bar"></i>
+            <h3>Quiz Results</h3>
+          </div>
+          <div class="result-content">
+            <pre>{{ result }}</pre>
+          </div>
+          <Button label="Start New Quiz" icon="pi pi-refresh" @click="gen" text class="w-full mt-4" />
         </div>
       </template>
     </Card>
@@ -80,59 +163,170 @@ async function submit() {
 </template>
 
 <style scoped>
-.quiz-card {
-  max-width: 600px;
-  margin: 0 auto;
-}
-.quiz-qbox {
-  margin-bottom: 18px;
-}
-.quiz-qnum {
-  font-size: 1.1rem;
-  color: #007acc;
-  margin-bottom: 8px;
-}
-.quiz-qtext {
-  font-size: 1.15rem;
-  margin-bottom: 10px;
-}
-.quiz-img img {
-  max-width: 300px;
-  border-radius: 6px;
-  margin-bottom: 10px;
-}
-.quiz-ans-btns {
+.quiz-container {
   display: flex;
-  gap: 16px;
   justify-content: center;
-  margin-top: 12px;
+  padding: 1rem;
 }
-.quiz-pagination {
+
+.quiz-card {
+  width: 100%;
+  max-width: 700px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+.quiz-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.header-left {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-top: 18px;
-  flex-wrap: wrap;
+  gap: 0.75rem;
+  font-size: 1.25rem;
+  color: var(--primary-700);
+  font-weight: 600;
 }
-.quiz-goto {
+
+.quiz-icon {
+  font-size: 1.5rem;
+  color: var(--primary-500);
+}
+
+.state-container {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-secondary);
+}
+
+.progress-indicator {
+  margin-bottom: 2rem;
+}
+
+.progress-text {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.question-box {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.question-text {
+  font-size: 1.5rem;
+  color: var(--text-main);
+  margin-bottom: 1.5rem;
+  line-height: 1.4;
+}
+
+.question-image img {
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  margin-bottom: 1.5rem;
+}
+
+.answer-actions {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+}
+
+.ans-btn {
+  min-width: 120px;
+  transition: all 0.2s;
+}
+
+.ans-btn.selected-true {
+  background-color: #22c55e !important;
+  border-color: #22c55e !important;
+  color: white !important;
+  transform: scale(1.05);
+}
+
+.ans-btn.selected-false {
+  background-color: #ef4444 !important;
+  border-color: #ef4444 !important;
+  color: white !important;
+  transform: scale(1.05);
+}
+
+.quiz-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--surface-200);
+}
+
+.pagination-dots {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
+  justify-content: center;
+  max-width: 300px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--surface-300);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dot.active {
+  background: var(--primary-500);
+  transform: scale(1.5);
+}
+
+.dot.answered {
+  background: var(--primary-300);
+}
+
+.dot.active.answered {
+  background: var(--primary-600);
+}
+
+.submit-section {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.result-container {
+  background: var(--surface-50);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  margin-top: 1rem;
+}
+
+.result-header {
+  display: flex;
   align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  color: var(--text-main);
 }
-.goto-btn.active {
-  background: #007acc !important;
-  color: #fff !important;
-}
-.loading {
-  color: #888;
-  text-align: center;
-  margin-bottom: 12px;
-}
-.quiz-result {
-  margin-top: 24px;
-  background: #f7f9fc;
-  border-radius: 6px;
-  padding: 16px;
+
+.result-content pre {
+  background: var(--surface-900);
+  color: var(--surface-50);
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+  font-size: 0.85rem;
 }
 </style>

@@ -22,87 +22,140 @@ function logout() {
 </script>
 
 <template>
-  <div class="app-bg">
+  <div class="app-container">
     <header class="app-header">
-      <h2 class="app-title">Patente Front</h2>
-      <Menubar :model="menuItems" class="main-menu" />
-      <div class="app-auth">
-        <template v-if="token">
-          <Button label="Logout" icon="pi pi-sign-out" @click="logout" severity="danger" />
-        </template>
-        <template v-else>
-          <Button label="Login" icon="pi pi-sign-in" @click="() => router.push('/login')" text />
-          <Button label="Register" icon="pi pi-user-plus" @click="() => router.push('/register')" text />
-        </template>
+      <div class="header-content">
+        <div class="brand">
+          <i class="pi pi-bolt brand-icon"></i>
+          <h2 class="app-title">Patente Front</h2>
+        </div>
+        <Menubar :model="menuItems" class="main-menu" />
+        <div class="app-auth">
+          <template v-if="token">
+            <Button label="Logout" icon="pi pi-sign-out" @click="logout" severity="danger" outlined size="small" />
+          </template>
+          <template v-else>
+            <Button label="Login" icon="pi pi-sign-in" @click="() => router.push('/login')" text size="small" />
+            <Button label="Register" icon="pi pi-user-plus" @click="() => router.push('/register')" size="small" />
+          </template>
+        </div>
       </div>
     </header>
+    
     <main class="app-main">
-      <router-view />
+      <router-view v-slot="{ Component }">
+        <transition name="fade" mode="out-in">
+          <component :is="Component" />
+        </transition>
+      </router-view>
     </main>
   </div>
 </template>
 
-<style>
-:root {
-  --primary: #007acc;
-  --bg: #f7f9fc;
-  --card-bg: #fff;
-  --border: #e0e6ed;
-  --radius: 8px;
-  --shadow: 0 2px 8px rgba(0,0,0,0.04);
-  --text: #222;
-  --nav-bg: #fff;
-}
-.app-bg {
+<style scoped>
+.app-container {
   min-height: 100vh;
-  background: var(--bg);
-  color: var(--text);
+  display: flex;
+  flex-direction: column;
 }
+
 .app-header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  padding: 1rem 2rem;
+}
+
+.header-content {
+  max-width: 1200px;
+  margin: 0 auto;
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 16px 32px;
-  background: var(--nav-bg);
-  border-bottom: 1px solid var(--border);
-  box-shadow: var(--shadow);
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(12px);
+  border-radius: var(--radius-xl);
+  padding: 0.5rem 1.5rem;
+  box-shadow: var(--shadow-md);
+  border: 1px solid rgba(255, 255, 255, 0.5);
 }
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-right: 1rem;
+}
+
+.brand-icon {
+  font-size: 1.5rem;
+  color: var(--primary-600);
+}
+
 .app-title {
   margin: 0;
-  font-size: 1.5rem;
-  color: var(--primary);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: -0.025em;
 }
+
 .main-menu {
   flex: 1;
-  margin-left: 24px;
-  background: transparent;
-  border: none;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
 }
+
 .app-auth {
-  margin-left: auto;
   display: flex;
-  gap: 12px;
+  gap: 0.75rem;
+  margin-left: auto;
 }
-.btn {
-  background: var(--primary);
-  color: #fff;
-  border: none;
-  border-radius: var(--radius);
-  padding: 6px 16px;
-  font-weight: 500;
-  cursor: pointer;
-  box-shadow: var(--shadow);
-  transition: background 0.2s;
-}
-.btn:hover {
-  background: #005fa3;
-}
+
 .app-main {
-  max-width: 700px;
-  margin: 32px auto;
-  padding: 24px;
-  background: var(--card-bg);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
+  flex: 1;
+  width: 100%;
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1.5rem;
+}
+
+/* Transitions */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+@media (max-width: 768px) {
+  .app-header {
+    padding: 0.5rem;
+  }
+  
+  .header-content {
+    padding: 0.5rem 1rem;
+    flex-wrap: wrap;
+  }
+  
+  .app-title {
+    font-size: 1.1rem;
+  }
+  
+  .main-menu {
+    order: 3;
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+  
+  .app-auth {
+    margin-left: auto;
+  }
 }
 </style>

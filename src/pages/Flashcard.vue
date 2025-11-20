@@ -48,64 +48,277 @@ onMounted(load)
 </script>
 
 <template>
-  <Card class="main-card">
-    <template #title>
-      Flashcard
-    </template>
-    <template #content>
-      <div v-if="loading" class="loading">Loading...</div>
-      <div v-if="progress !== null" class="progress-bar">
-        <span>Progress:</span>
-        <ProgressBar :value="progress" showValue />
-      </div>
-      <div v-if="error" class="error">{{ error }}</div>
-      <div v-if="card" class="flashcard-content">
-        <div class="flashcard-row"><span>Italian:</span> <b>{{ card.text_it }}</b></div>
-        <Button class="btn-toggle" @click="toggleTrans" style="margin-bottom:12px" :label="showTrans ? 'Hide English & Farsi' : 'Show English & Farsi'" text />
-        <div v-if="showTrans">
-          <div class="flashcard-row"><span>English:</span> <b>{{ card.text_en }}</b></div>
-          <div class="flashcard-row"><span>Farsi:</span> <b>{{ card.text_fa }}</b></div>
+  <div class="flashcard-container">
+    <Card class="flashcard-panel">
+      <template #title>
+        <div class="card-header">
+          <i class="pi pi-clone card-icon"></i>
+          <span>Flashcard Challenge</span>
         </div>
-        <div class="flashcard-row"><small>Score: {{ card.score ?? 0 }}</small></div>
-        <div class="flashcard-actions">
-          <Button label="Correct" icon="pi pi-check" @click="answer('correct')" severity="success" />
-          <Button label="Wrong" icon="pi pi-times" @click="answer('wrong')" severity="danger" text />
+      </template>
+      <template #content>
+        <div v-if="loading" class="state-container">
+          <i class="pi pi-spin pi-spinner" style="font-size: 2rem; color: var(--primary-500)"></i>
+          <p>Loading your next challenge...</p>
         </div>
-      </div>
-    </template>
-  </Card>
+        
+        <div v-else-if="error" class="state-container error">
+          <i class="pi pi-exclamation-circle" style="font-size: 2rem"></i>
+          <p>{{ error }}</p>
+          <Button label="Try Again" icon="pi pi-refresh" @click="load" text />
+        </div>
+        
+        <div v-else class="content-wrapper">
+          <div v-if="progress !== null" class="progress-section">
+            <div class="progress-label">
+              <span>Daily Goal</span>
+              <span class="progress-value">{{ progress }}%</span>
+            </div>
+            <ProgressBar :value="progress" :showValue="false" style="height: 8px; border-radius: 4px" />
+          </div>
+
+          <div v-if="card" class="flashcard-display">
+            <div class="word-main">
+              <span class="lang-label">Italian</span>
+              <h1 class="word-text">{{ card.text_it }}</h1>
+            </div>
+            
+            <div class="divider">
+              <Button 
+                @click="toggleTrans" 
+                :icon="showTrans ? 'pi pi-eye-slash' : 'pi pi-eye'"
+                :label="showTrans ? 'Hide Translation' : 'Reveal Translation'" 
+                rounded
+                outlined
+                size="small"
+              />
+            </div>
+
+            <transition name="slide-fade">
+              <div v-if="showTrans" class="translation-box">
+                <div class="trans-row">
+                  <span class="lang-label">English</span>
+                  <p class="trans-text">{{ card.text_en }}</p>
+                </div>
+                <div class="trans-row">
+                  <span class="lang-label">Farsi</span>
+                  <p class="trans-text farsi-text">{{ card.text_fa }}</p>
+                </div>
+              </div>
+            </transition>
+            
+            <div class="card-footer">
+              <div class="score-badge" v-if="card.score !== undefined">
+                <i class="pi pi-star-fill"></i>
+                <span>Level {{ card.score }}</span>
+              </div>
+            </div>
+
+            <div class="action-buttons">
+              <Button 
+                label="I knew it" 
+                icon="pi pi-check" 
+                @click="answer('correct')" 
+                severity="success" 
+                raised
+                class="action-btn"
+              />
+              <Button 
+                label="Study more" 
+                icon="pi pi-times" 
+                @click="answer('wrong')" 
+                severity="danger" 
+                text
+                class="action-btn"
+              />
+            </div>
+          </div>
+        </div>
+      </template>
+    </Card>
+  </div>
 </template>
 
 <style scoped>
-.main-card {
-  max-width: 400px;
-  margin: 0 auto;
-}
-.flashcard-content {
-  margin-bottom: 18px;
-}
-.flashcard-row {
-  margin-bottom: 10px;
-  font-size: 1.1rem;
-}
-.flashcard-actions {
+.flashcard-container {
   display: flex;
-  gap: 12px;
-  margin-top: 18px;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.flashcard-panel {
+  width: 100%;
+  max-width: 500px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.25rem;
+  color: var(--primary-700);
+  margin-bottom: 1rem;
+}
+
+.card-icon {
+  font-size: 1.25rem;
+  color: var(--primary-500);
+}
+
+.state-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 3rem 0;
+  color: var(--text-secondary);
+}
+
+.state-container.error {
+  color: #ef4444;
+}
+
+.progress-section {
+  margin-bottom: 2rem;
+}
+
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.flashcard-display {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.word-main {
+  text-align: center;
+  padding: 2rem;
+  background: linear-gradient(135deg, var(--primary-50) 0%, var(--surface-0) 100%);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--primary-100);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.lang-label {
+  display: block;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--primary-400);
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.word-text {
+  font-size: 2rem;
+  color: var(--primary-900);
+  margin: 0;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.divider {
+  display: flex;
+  justify-content: center;
+  position: relative;
+}
+
+.divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--surface-200);
+  z-index: 0;
+}
+
+.divider :deep(.p-button) {
+  position: relative; /* z-index needs position */
+  z-index: 1;
+  background: var(--card-bg);
+}
+
+.translation-box {
+  background: var(--surface-50);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  border: 1px solid var(--surface-200);
+}
+
+.trans-row {
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.trans-row:last-child {
+  margin-bottom: 0;
+}
+
+.trans-text {
+  font-size: 1.25rem;
+  color: var(--text-main);
+  margin: 0;
+  font-weight: 500;
+}
+
+.farsi-text {
+  font-family: 'Tahoma', sans-serif; /* Better for Farsi */
+}
+
+.card-footer {
+  display: flex;
   justify-content: center;
 }
-.loading {
-  color: #888;
-  text-align: center;
-  margin-bottom: 12px;
+
+.score-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  background: var(--surface-100);
+  border-radius: 99px;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
 }
-.error {
-  color: #c00;
-  margin-bottom: 12px;
-  text-align: center;
+
+.score-badge i {
+  color: #fbbf24;
 }
-.progress-bar {
-  margin-bottom: 18px;
-  text-align: center;
+
+.action-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.action-btn {
+  width: 100%;
+  justify-content: center;
+}
+
+/* Transitions */
+.slide-fade-enter-active {
+  transition: all 0.3s ease-out;
+}
+
+.slide-fade-leave-active {
+  transition: all 0.2s cubic-bezier(1, 0.5, 0.8, 1);
+}
+
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+  transform: translateY(-10px);
+  opacity: 0;
 }
 </style>
