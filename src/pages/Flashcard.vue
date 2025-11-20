@@ -148,7 +148,7 @@ onMounted(load)
 
 .flashcard-panel {
   width: 100%;
-  max-width: 500px;
+  max-width: 100%;
   border: 1px solid rgba(255, 255, 255, 0.6);
 }
 

@@ -6,12 +6,30 @@ const router = useRouter()
 const token = ref(localStorage.getItem('auth_token'))
 
 const menuItems = [
-  { label: 'Flashcard', command: () => router.push('/flashcard') },
-  { label: 'All Flashcards', command: () => router.push('/flashcards') },
-  { label: 'Quiz', command: () => router.push('/quiz') },
-  { label: 'My Questions', command: () => router.push('/questions-responded') },
-  { label: 'My Flashcards', command: () => router.push('/flashcards-responded') },
-  { label: 'Images', command: () => router.push('/images') }
+  {
+    label: 'Practice',
+    icon: 'pi pi-fw pi-pencil',
+    items: [
+      { label: 'Quick Practice', icon: 'pi pi-fw pi-bolt', command: () => router.push('/flashcard') },
+      { label: 'Take Quiz', icon: 'pi pi-fw pi-list', command: () => router.push('/quiz') }
+    ]
+  },
+  {
+    label: 'Library',
+    icon: 'pi pi-fw pi-book',
+    items: [
+      { label: 'All Flashcards', icon: 'pi pi-fw pi-clone', command: () => router.push('/flashcards') },
+      { label: 'Segnali', icon: 'pi pi-fw pi-images', command: () => router.push('/images') }
+    ]
+  },
+  {
+    label: 'My History',
+    icon: 'pi pi-fw pi-history',
+    items: [
+      { label: 'Answered Questions', icon: 'pi pi-fw pi-check-circle', command: () => router.push('/questions-responded') },
+      { label: 'Studied Flashcards', icon: 'pi pi-fw pi-bookmark', command: () => router.push('/flashcards-responded') }
+    ]
+  }
 ]
 
 function logout() {
@@ -32,6 +50,7 @@ function logout() {
         <Menubar :model="menuItems" class="main-menu" />
         <div class="app-auth">
           <template v-if="token">
+            <Button label="Profile" icon="pi pi-user" @click="() => router.push('/profile')" text size="small" />
             <Button label="Logout" icon="pi pi-sign-out" @click="logout" severity="danger" outlined size="small" />
           </template>
           <template v-else>

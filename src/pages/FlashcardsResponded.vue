@@ -36,7 +36,7 @@ onMounted(load)
 
 <style scoped>
 .main-card {
-  max-width: 600px;
+  max-width: 100%;
   margin: 0 auto;
 }
 .resp-list {

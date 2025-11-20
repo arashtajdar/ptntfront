@@ -7,6 +7,7 @@ import Register from '../pages/Register.vue'
 import QuestionsResponded from '../pages/QuestionsResponded.vue'
 import FlashcardsResponded from '../pages/FlashcardsResponded.vue'
 import Images from '../pages/Images.vue'
+import Profile from '../pages/Profile.vue'
 
 const routes = [
   { path: '/', redirect: '/flashcard' },
@@ -16,6 +17,7 @@ const routes = [
   { path: '/questions-responded', component: QuestionsResponded, meta: { requiresAuth: true } },
   { path: '/flashcards-responded', component: FlashcardsResponded, meta: { requiresAuth: true } },
   { path: '/images', component: Images, meta: { requiresAuth: true } },
+  { path: '/profile', component: Profile, meta: { requiresAuth: true } },
   { path: '/login', component: Login },
   { path: '/register', component: Register }
 ]

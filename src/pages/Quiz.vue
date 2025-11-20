@@ -123,7 +123,7 @@ async function submit() {
                   answered: q._answer
                 }"
                 @click="go(idx)"
-              ></div>
+              >{{ idx + 1 }}</div>
             </div>
 
             <Button 
@@ -171,7 +171,7 @@ async function submit() {
 
 .quiz-card {
   width: 100%;
-  max-width: 700px;
+  max-width: 100%;
   border: 1px solid rgba(255, 255, 255, 0.6);
 }
 
@@ -273,31 +273,49 @@ async function submit() {
 .pagination-dots {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 8px;
   justify-content: center;
-  max-width: 300px;
+  max-width: 100%;
+  padding: 0 1rem;
 }
 
 .dot {
-  width: 8px;
-  height: 8px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  background: var(--surface-300);
+  background: var(--surface-200);
   cursor: pointer;
   transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  border: 1px solid transparent;
+}
+
+.dot:hover {
+  background: var(--surface-300);
 }
 
 .dot.active {
   background: var(--primary-500);
-  transform: scale(1.5);
+  color: white;
+  transform: scale(1.1);
+  box-shadow: var(--shadow-sm);
 }
 
 .dot.answered {
-  background: var(--primary-300);
+  background: var(--surface-300);
+  border-color: var(--primary-300);
+  color: var(--text-main);
 }
 
 .dot.active.answered {
   background: var(--primary-600);
+  border-color: transparent;
+  color: white;
 }
 
 .submit-section {

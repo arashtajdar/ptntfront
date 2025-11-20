@@ -25,6 +25,9 @@ export default {
   async getOverallProgress() {
     return request('/me/progress')
   },
+  async getProfile() {
+    return request('/me/profile')
+  },
   async getRandomFlashcard(params = '') {
     return request('/flashcards/random' + (params ? `?${params}` : ''))
   },
@@ -57,7 +60,7 @@ export default {
     try {
       const res = await request('/me/questions-responded')
       if (res && !res.message) return res
-    } catch (e) {}
+    } catch (e) { }
     // Fallback fake data
     return [{ id: 3369, text: 'Sample question (fake)', answer: 'V', last_attempted: new Date().toISOString() }]
   },
@@ -65,7 +68,7 @@ export default {
     try {
       const res = await request('/me/flashcards-responded')
       if (res && !res.message) return res
-    } catch (e) {}
+    } catch (e) { }
     return [{ id: 1174, text_en: 'tracks', text_fa: 'راه‌ها', score: 1, last_attempt_at: new Date().toISOString() }]
   },
   async getImagesList() {
