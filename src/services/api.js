@@ -67,5 +67,8 @@ export default {
       if (res && !res.message) return res
     } catch (e) {}
     return [{ id: 1174, text_en: 'tracks', text_fa: 'راه‌ها', score: 1, last_attempt_at: new Date().toISOString() }]
+  },
+  async getImagesList() {
+    return request('/questions/images/list')
   }
 }

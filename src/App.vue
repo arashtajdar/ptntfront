@@ -10,7 +10,8 @@ const menuItems = [
   { label: 'All Flashcards', command: () => router.push('/flashcards') },
   { label: 'Quiz', command: () => router.push('/quiz') },
   { label: 'My Questions', command: () => router.push('/questions-responded') },
-  { label: 'My Flashcards', command: () => router.push('/flashcards-responded') }
+  { label: 'My Flashcards', command: () => router.push('/flashcards-responded') },
+  { label: 'Images', command: () => router.push('/images') }
 ]
 
 function logout() {
