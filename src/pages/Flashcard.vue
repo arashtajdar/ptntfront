@@ -53,12 +53,6 @@ onMounted(load)
     <PageHeader title="Flashcard Practice" subtitle="Master Italian driving terms" />
     <div class="flashcard-container">
     <Card class="flashcard-panel">
-      <template #title>
-        <div class="card-header">
-          <i class="pi pi-clone card-icon"></i>
-          <span>Flashcard Challenge</span>
-        </div>
-      </template>
       <template #content>
         <div v-if="loading" class="state-container">
           <i class="pi pi-spin pi-spinner" style="font-size: 2rem; color: var(--primary-500)"></i>

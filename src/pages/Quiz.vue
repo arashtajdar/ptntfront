@@ -53,10 +53,6 @@ async function submit() {
     <Card class="quiz-card">
       <template #title>
         <div class="quiz-header">
-          <div class="header-left">
-            <i class="pi pi-question-circle quiz-icon"></i>
-            <span>Quiz Challenge</span>
-          </div>
           <Button 
             v-if="!questions.length" 
             label="Start New Quiz" 
