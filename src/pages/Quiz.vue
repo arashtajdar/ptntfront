@@ -1,15 +1,52 @@
 <script setup>
-import { ref, nextTick } from 'vue'
+import { ref, nextTick, computed, onUnmounted } from 'vue'
 import api from '../services/api'
 import Card from 'primevue/card'
 import Button from 'primevue/button'
 import PageHeader from '../components/PageHeader.vue'
+import ProgressBar from 'primevue/progressbar'
 
 const questions = ref([])
 const loading = ref(false)
 const result = ref(null)
 const current = ref(0)
 const resultContainer = ref(null)
+
+// Timer logic
+const timer = ref(20 * 60) // 20 minutes in seconds
+const timerInterval = ref(null)
+
+const formattedTimer = computed(() => {
+  const minutes = Math.floor(timer.value / 60)
+  const seconds = timer.value % 60
+  return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+})
+
+const timerColor = computed(() => {
+  if (timer.value < 60) return '#ef4444' // Red (< 1 min)
+  if (timer.value < 5 * 60) return '#f97316' // Orange (< 5 min)
+  return '#22c55e' // Green
+})
+
+function startTimer() {
+  clearInterval(timerInterval.value)
+  timer.value = 20 * 60
+  timerInterval.value = setInterval(() => {
+    if (timer.value > 0) {
+      timer.value--
+    } else {
+      submit() // Auto-submit when time runs out
+    }
+  }, 1000)
+}
+
+function stopTimer() {
+  clearInterval(timerInterval.value)
+}
+
+onUnmounted(() => {
+  stopTimer()
+})
 
 async function gen() {
   loading.value = true
@@ -18,6 +55,7 @@ async function gen() {
     questions.value = res.map(q => ({ ...q }))
     current.value = 0
     result.value = null
+    startTimer()
   }
   loading.value = false
 }
@@ -35,6 +73,7 @@ function go(idx) {
 }
 
 async function submit() {
+  stopTimer()
   const ids = questions.value.map(q => q.id)
   const answers = questions.value.map(q => q._answer || '')
   const res = await api.submitQuiz({ question_ids: ids, answers })
@@ -53,14 +92,22 @@ async function submit() {
     <Card class="quiz-card">
       <template #title>
         <div class="quiz-header">
-          <Button 
-            v-if="!questions.length" 
-            label="Start New Quiz" 
-            icon="pi pi-play" 
-            @click="gen" 
-            severity="primary"
-            rounded
-          />
+          <div v-if="!questions.length" class="start-btn-container">
+            <Button 
+              label="Start New Quiz" 
+              icon="pi pi-play" 
+              @click="gen" 
+              severity="primary"
+              rounded
+              size="large"
+            />
+          </div>
+          <div v-else class="header-content">
+            <div class="timer-display" :style="{ color: timerColor }">
+              <i class="pi pi-clock"></i>
+              <span>{{ formattedTimer }}</span>
+            </div>
+          </div>
         </div>
       </template>
       <template #content>
@@ -248,9 +295,36 @@ async function submit() {
 
 .quiz-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: center; /* Center content by default */
   align-items: center;
   margin-bottom: 1rem;
+  width: 100%;
+}
+
+.start-btn-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  padding: 2rem 0;
+}
+
+.header-content {
+  display: flex;
+  justify-content: flex-end; /* Timer to the right */
+  width: 100%;
+}
+
+.timer-display {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  padding: 0.5rem 1rem;
+  background: var(--surface-50);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--surface-200);
+  transition: color 0.3s ease;
 }
 
 .header-left {
