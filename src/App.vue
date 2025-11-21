@@ -1,11 +1,11 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const token = ref(localStorage.getItem('auth_token'))
 
-const menuItems = [
+const menuItems = computed(() => [
   {
     label: 'Practice',
     icon: 'pi pi-fw pi-pencil',
@@ -29,8 +29,20 @@ const menuItems = [
       { label: 'Answered Questions', icon: 'pi pi-fw pi-check-circle', command: () => router.push('/questions-responded') },
       { label: 'Studied Flashcards', icon: 'pi pi-fw pi-bookmark', command: () => router.push('/flashcards-responded') }
     ]
+  },
+  {
+    label: 'Profile',
+    icon: 'pi pi-fw pi-user',
+    visible: !!token.value,
+    command: () => router.push('/profile')
+  },
+  {
+    label: 'Logout',
+    icon: 'pi pi-fw pi-sign-out',
+    visible: !!token.value,
+    command: () => logout()
   }
-]
+])
 
 function logout() {
   localStorage.removeItem('auth_token')
@@ -49,11 +61,7 @@ function logout() {
         </div>
         <Menubar :model="menuItems" class="main-menu" />
         <div class="app-auth">
-          <template v-if="token">
-            <Button label="Profile" icon="pi pi-user" @click="() => router.push('/profile')" text size="small" />
-            <Button label="Logout" icon="pi pi-sign-out" @click="logout" severity="danger" outlined size="small" />
-          </template>
-          <template v-else>
+          <template v-if="!token">
             <Button label="Login" icon="pi pi-sign-in" @click="() => router.push('/login')" text size="small" />
             <Button label="Register" icon="pi pi-user-plus" @click="() => router.push('/register')" size="small" />
           </template>
