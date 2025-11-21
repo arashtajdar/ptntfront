@@ -24,7 +24,7 @@ watch(() => route.path, () => {
 // All pages in a flat list for mobile menu
 const allPages = computed(() => [
   { label: 'Home', icon: 'pi pi-fw pi-home', path: '/' },
-  { label: 'Quick Practice', icon: 'pi pi-fw pi-bolt', path: '/flashcard' },
+  { label: 'Flashcard Practice', icon: 'pi pi-fw pi-bolt', path: '/flashcard' },
   { label: 'Take Quiz', icon: 'pi pi-fw pi-question-circle', path: '/quiz' },
   { label: 'All Flashcards', icon: 'pi pi-fw pi-clone', path: '/flashcards' },
   { label: 'Segnali', icon: 'pi pi-fw pi-images', path: '/signs' },
@@ -45,7 +45,7 @@ const menuItems = computed(() => [
     label: 'Practice',
     icon: 'pi pi-fw pi-pencil',
     items: [
-      { label: 'Quick Practice', icon: 'pi pi-fw pi-bolt', command: () => router.push('/flashcard') },
+      { label: 'Flashcard Practice', icon: 'pi pi-fw pi-bolt', command: () => router.push('/flashcard') },
       { label: 'Take Quiz', icon: 'pi pi-fw pi-question-circle', command: () => router.push('/quiz') }
     ]
   },

@@ -103,6 +103,13 @@ async function submit() {
             />
           </div>
           <div v-else class="header-content">
+            <div class="progress-container">
+              <div class="progress-text">
+                <span>Question {{ current + 1 }}</span>
+                <span class="total">of {{ questions.length }}</span>
+              </div>
+              <ProgressBar :value="((current + 1) / questions.length) * 100" :showValue="false" style="height: 6px" />
+            </div>
             <div class="timer-display" :style="{ color: timerColor }">
               <i class="pi pi-clock"></i>
               <span>{{ formattedTimer }}</span>
@@ -117,14 +124,6 @@ async function submit() {
         </div>
 
         <div v-else-if="questions.length" class="quiz-content">
-          <div class="progress-indicator">
-            <div class="progress-text">
-              <span>Question {{ current + 1 }}</span>
-              <span class="total">of {{ questions.length }}</span>
-            </div>
-            <ProgressBar :value="((current + 1) / questions.length) * 100" :showValue="false" style="height: 6px" />
-          </div>
-
           <div class="question-box">
             <div class="question-content">
               <div class="question-image">
@@ -310,8 +309,15 @@ async function submit() {
 
 .header-content {
   display: flex;
-  justify-content: flex-end; /* Timer to the right */
+  justify-content: space-between; /* Progress left, Timer right */
+  align-items: center;
   width: 100%;
+  gap: 2rem;
+}
+
+.progress-container {
+  flex: 1;
+  max-width: 400px;
 }
 
 .timer-display {
@@ -325,6 +331,7 @@ async function submit() {
   border-radius: var(--radius-md);
   border: 1px solid var(--surface-200);
   transition: color 0.3s ease;
+  white-space: nowrap;
 }
 
 .header-left {

@@ -15,7 +15,7 @@ defineProps({
   <div class="page-header">
     <div class="page-header-content">
       <h1 class="page-title">{{ title }}</h1>
-      <p v-if="subtitle" class="page-subtitle">{{ subtitle }}</p>
+      <!-- <p v-if="subtitle" class="page-subtitle">{{ subtitle }}</p> -->
     </div>
   </div>
 </template>
