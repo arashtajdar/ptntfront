@@ -71,7 +71,7 @@ onMounted(load)
         <div v-else class="content-wrapper">
           <div v-if="progress !== null" class="progress-section">
             <div class="progress-label">
-              <span>Daily Goal</span>
+              <span>Progress</span>
               <span class="progress-value">{{ progress }}%</span>
             </div>
             <ProgressBar :value="progress" :showValue="false" style="height: 8px; border-radius: 4px" />
