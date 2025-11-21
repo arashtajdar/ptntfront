@@ -94,8 +94,13 @@ async function submit() {
                 label="Vero" 
                 icon="pi pi-check" 
                 @click="answer('V')" 
-                :class="['ans-btn', { 'selected-true': questions[current]._answer === 'V' }]"
+                :class="['ans-btn', { 
+                  'selected-true': questions[current]._answer === 'V',
+                  'correct-answer': result && questions[current].answer === 'V',
+                  'wrong-answer': result && questions[current]._answer === 'V' && questions[current].answer !== 'V'
+                }]"
                 :outlined="questions[current]._answer !== 'V'"
+                :disabled="!!result"
                 severity="success" 
                 size="large"
               />
@@ -103,11 +108,29 @@ async function submit() {
                 label="Falso" 
                 icon="pi pi-times" 
                 @click="answer('F')" 
-                :class="['ans-btn', { 'selected-false': questions[current]._answer === 'F' }]"
+                :class="['ans-btn', { 
+                  'selected-false': questions[current]._answer === 'F',
+                  'correct-answer': result && questions[current].answer === 'F',
+                  'wrong-answer': result && questions[current]._answer === 'F' && questions[current].answer !== 'F'
+                }]"
                 :outlined="questions[current]._answer !== 'F'"
+                :disabled="!!result"
                 severity="danger" 
                 size="large"
               />
+            </div>
+            
+            <div v-if="result" class="answer-feedback">
+              <div class="feedback-item">
+                <span class="feedback-label">Your answer:</span>
+                <span :class="['feedback-value', questions[current]._answer === questions[current].answer ? 'correct' : 'incorrect']">
+                  {{ questions[current]._answer || 'Not answered' }}
+                </span>
+              </div>
+              <div class="feedback-item">
+                <span class="feedback-label">Correct answer:</span>
+                <span class="feedback-value correct">{{ questions[current].answer }}</span>
+              </div>
             </div>
           </div>
 
@@ -128,7 +151,9 @@ async function submit() {
                 class="dot"
                 :class="{ 
                   active: current === idx,
-                  answered: q._answer
+                  answered: q._answer,
+                  'dot-correct': result && q._answer === q.answer,
+                  'dot-wrong': result && q._answer && q._answer !== q.answer
                 }"
                 @click="go(idx)"
               >{{ idx + 1 }}</div>
@@ -144,8 +169,13 @@ async function submit() {
             />
           </div>
 
-          <div class="submit-section" v-if="questions.some(q => q._answer)">
+          <div class="submit-section">
+            <div v-if="!questions.every(q => q._answer)" class="submit-message">
+              <i class="pi pi-info-circle"></i>
+              <p>Please answer all questions to submit ({{ questions.filter(q => q._answer).length }}/{{ questions.length }} answered)</p>
+            </div>
             <Button 
+              v-else
               label="Submit Quiz" 
               icon="pi pi-send" 
               @click="submit" 
@@ -168,10 +198,10 @@ async function submit() {
           </div>
           
           <div class="score-section">
-            <div class="score-circle" :style="{ background: `conic-gradient(${result.wrong <= 3 ? '#22c55e' : '#ef4444'} ${result.score}%, var(--surface-200) 0)` }">
+            <div class="score-circle" :style="{ background: `conic-gradient(${result.wrong <= 3 ? '#22c55e' : '#ef4444'} ${result.score || 0}%, var(--surface-200) 0)` }">
               <div class="score-inner">
                 <span class="score-value" :style="{ color: result.wrong <= 3 ? '#22c55e' : '#ef4444' }">
-                  {{ Math.round(result.score) }}%
+                  {{ Math.round(result.score || 0) }}%
                 </span>
                 <span class="score-label">Score</span>
               </div>
@@ -323,6 +353,60 @@ async function submit() {
   transform: scale(1.05);
 }
 
+.ans-btn.correct-answer {
+  background-color: #22c55e !important;
+  border-color: #22c55e !important;
+  color: white !important;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.3);
+}
+
+.ans-btn.wrong-answer {
+  background-color: #ef4444 !important;
+  border-color: #ef4444 !important;
+  color: white !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3);
+}
+
+.ans-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.9;
+}
+
+.answer-feedback {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: var(--surface-50);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.feedback-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1rem;
+}
+
+.feedback-label {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.feedback-value {
+  font-weight: 700;
+  font-size: 1.125rem;
+}
+
+.feedback-value.correct {
+  color: #22c55e;
+}
+
+.feedback-value.incorrect {
+  color: #ef4444;
+}
+
 .quiz-navigation {
   display: flex;
   align-items: center;
@@ -381,10 +465,53 @@ async function submit() {
   color: white;
 }
 
+.dot.dot-correct {
+  background: #22c55e;
+  border-color: #16a34a;
+  color: white;
+}
+
+.dot.dot-wrong {
+  background: #ef4444;
+  border-color: #dc2626;
+  color: white;
+}
+
+.dot.active.dot-correct {
+  background: #16a34a;
+  transform: scale(1.1);
+}
+
+.dot.active.dot-wrong {
+  background: #dc2626;
+  transform: scale(1.1);
+}
+
 .submit-section {
   display: flex;
   justify-content: center;
   margin-top: 2rem;
+}
+
+.submit-message {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  background: var(--surface-100);
+  border: 1px solid var(--surface-300);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+}
+
+.submit-message i {
+  font-size: 1.25rem;
+  color: var(--primary-500);
+}
+
+.submit-message p {
+  margin: 0;
+  font-size: 0.95rem;
 }
 
 .result-container {
