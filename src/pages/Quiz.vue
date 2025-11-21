@@ -79,10 +79,14 @@ async function submit() {
           </div>
 
           <div class="question-box">
-            <h3 class="question-text">{{ questions[current].text }}</h3>
-            
-            <div class="question-image">
-              <img :src="questions[current].image ? '/images/'+questions[current].image : '/images/no-image.svg'" alt="Question Image" />
+            <div class="question-content">
+              <div class="question-image">
+                <img :src="questions[current].image ? '/images/'+questions[current].image : '/images/no-image.svg'" alt="Question Image" />
+              </div>
+              
+              <div class="question-text-wrapper">
+                <h3 class="question-text">{{ questions[current].text }}</h3>
+              </div>
             </div>
 
             <div class="answer-actions">
@@ -253,23 +257,36 @@ async function submit() {
 }
 
 .question-box {
-  text-align: center;
   margin-bottom: 2.5rem;
+}
+
+.question-content {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+}
+
+.question-text-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
 }
 
 .question-text {
   font-size: 1.5rem;
   color: var(--text-main);
-  margin-bottom: 1.5rem;
+  margin: 0;
   line-height: 1.4;
 }
 
 .question-image {
-  height: 300px;
+  width: 300px;
+  height: 200px;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 1.5rem;
   background-color: var(--surface-50);
   border-radius: var(--radius-lg);
   overflow: hidden;
@@ -490,5 +507,30 @@ async function submit() {
 .result-actions {
   display: flex;
   justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .question-content {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .question-image {
+    width: 100%;
+    height: 180px;
+  }
+
+  .question-text {
+    font-size: 1.125rem;
+  }
+
+  .answer-actions {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .ans-btn {
+    width: 100%;
+  }
 }
 </style>
