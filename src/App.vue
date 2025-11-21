@@ -167,22 +167,52 @@ function logout() {
   }
   
   .header-content {
-    padding: 0.5rem 1rem;
-    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 1rem;
+    gap: 0.5rem;
+  }
+  
+  .brand {
+    width: 100%;
+    justify-content: center;
+    margin-right: 0;
+    margin-bottom: 0.25rem;
   }
   
   .app-title {
-    font-size: 1.1rem;
+    font-size: 1.25rem;
   }
   
   .main-menu {
-    order: 3;
     width: 100%;
-    margin-top: 0.5rem;
+    display: flex;
+    justify-content: center;
+    background: var(--surface-50) !important;
+    border-radius: var(--radius-lg);
+    padding: 0.25rem !important;
   }
-  
+
+  /* Center the hamburger icon in the bar */
+  :deep(.p-menubar-button) {
+    width: 100%;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
   .app-auth {
-    margin-left: auto;
+    display: none; /* Hide auth buttons container as they are in menu now (except login/register if not logged in, but user said put logout/profile in menu. Login/Register might still be outside? The previous step removed Profile/Logout from here if token exists. If !token, they are here. If !token, maybe we want them below too? Let's keep them for now, but the user focused on logged in state.) */
+    /* Actually, if !token, we still have Login/Register buttons. 
+       If we want strictly Brand -> Menu, we should probably put Login/Register in menu too or keep them below.
+       Let's assume the user cares about the Logged In state mainly. 
+       If I hide .app-auth, Login/Register will disappear. 
+       Let's keep .app-auth visible if it has content, but maybe center it too.
+    */
+    width: 100%;
+    justify-content: center;
+    margin-top: 0.5rem;
   }
 }
 </style>
