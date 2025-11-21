@@ -1,4 +1,8 @@
-const BASE_URL = import.meta.env.VITE_BASE_URL || "https://ptnt-production.up.railway.app/api"
+let BASE_URL = import.meta.env.VITE_BASE_URL
+if (!BASE_URL || BASE_URL === 'undefined') {
+  BASE_URL = "https://ptnt-production.up.railway.app/api"
+}
+console.log('Current API Base URL:', BASE_URL)
 function authHeaders() {
   const token = localStorage.getItem('auth_token')
   return token ? { Authorization: `Bearer ${token}` } : {}

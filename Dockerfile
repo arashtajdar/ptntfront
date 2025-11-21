@@ -12,6 +12,8 @@ RUN npm install
 COPY . .
 
 # Build for production
+ARG VITE_BASE_URL
+ENV VITE_BASE_URL=$VITE_BASE_URL
 RUN npm run build
 
 # Step 2: Serve the built app with a lightweight web server
