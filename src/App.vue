@@ -1,17 +1,52 @@
 <script setup>
-import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 
 const router = useRouter()
-const token = ref(localStorage.getItem('auth_token'))
+const route = useRoute()
+const token = ref(null)
+const mobileMenuOpen = ref(false)
+
+// Initialize token and watch for changes
+onMounted(() => {
+  token.value = localStorage.getItem('auth_token')
+})
+
+// Computed property to track login state
+const isLoggedIn = computed(() => !!token.value)
+
+// Watch route changes to update token (catches login/logout)
+watch(() => route.path, () => {
+  token.value = localStorage.getItem('auth_token')
+  mobileMenuOpen.value = false // Close menu on navigation
+})
+
+// All pages in a flat list for mobile menu
+const allPages = computed(() => [
+  { label: 'Home', icon: 'pi pi-fw pi-home', path: '/' },
+  { label: 'Quick Practice', icon: 'pi pi-fw pi-bolt', path: '/flashcard' },
+  { label: 'Take Quiz', icon: 'pi pi-fw pi-question-circle', path: '/quiz' },
+  { label: 'All Flashcards', icon: 'pi pi-fw pi-clone', path: '/flashcards' },
+  { label: 'Segnali', icon: 'pi pi-fw pi-images', path: '/signs' },
+  { label: 'Answered Questions', icon: 'pi pi-fw pi-check-circle', path: '/questions-responded' },
+  { label: 'Studied Flashcards', icon: 'pi pi-fw pi-bookmark', path: '/flashcards-responded' },
+  ...(isLoggedIn.value ? [
+    { label: 'Profile', icon: 'pi pi-fw pi-user', path: '/profile' }
+  ] : [])
+])
 
 const menuItems = computed(() => [
+  {
+    label: 'Home',
+    icon: 'pi pi-fw pi-home',
+    command: () => router.push('/')
+  },
   {
     label: 'Practice',
     icon: 'pi pi-fw pi-pencil',
     items: [
       { label: 'Quick Practice', icon: 'pi pi-fw pi-bolt', command: () => router.push('/flashcard') },
-      { label: 'Take Quiz', icon: 'pi pi-fw pi-list', command: () => router.push('/quiz') }
+      { label: 'Take Quiz', icon: 'pi pi-fw pi-question-circle', command: () => router.push('/quiz') }
     ]
   },
   {
@@ -33,13 +68,13 @@ const menuItems = computed(() => [
   {
     label: 'Profile',
     icon: 'pi pi-fw pi-user',
-    visible: !!token.value,
+    visible: isLoggedIn.value,
     command: () => router.push('/profile')
   },
   {
     label: 'Logout',
     icon: 'pi pi-fw pi-sign-out',
-    visible: !!token.value,
+    visible: isLoggedIn.value,
     command: () => logout()
   }
 ])
@@ -48,6 +83,15 @@ function logout() {
   localStorage.removeItem('auth_token')
   token.value = null
   router.push('/login')
+}
+
+function toggleMobileMenu() {
+  mobileMenuOpen.value = !mobileMenuOpen.value
+}
+
+function navigateToPage(path) {
+  router.push(path)
+  mobileMenuOpen.value = false
 }
 </script>
 
@@ -61,7 +105,7 @@ function logout() {
         </div>
         <Menubar :model="menuItems" class="main-menu" />
         <div class="app-auth">
-          <template v-if="!token">
+          <template v-if="!isLoggedIn">
             <Button label="Login" icon="pi pi-sign-in" @click="() => router.push('/login')" text size="small" />
             <Button label="Register" icon="pi pi-user-plus" @click="() => router.push('/register')" size="small" />
           </template>
@@ -76,6 +120,55 @@ function logout() {
         </transition>
       </router-view>
     </main>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-bottom-nav">
+      <button class="nav-btn" @click="toggleMobileMenu">
+        <i class="pi pi-bars"></i>
+        <span>Menu</span>
+      </button>
+      <button class="nav-btn nav-btn-primary" @click="navigateToPage('/')">
+        <i class="pi pi-home"></i>
+        <span>Home</span>
+      </button>
+      <button class="nav-btn" @click="navigateToPage('/quiz')">
+        <i class="pi pi-question"></i>
+        <span>Quiz</span>
+      </button>
+    </nav>
+
+    <!-- Mobile Menu Drawer -->
+    <transition name="slide">
+      <div v-if="mobileMenuOpen" class="mobile-menu-overlay" @click="toggleMobileMenu">
+        <div class="mobile-menu-drawer" @click.stop>
+          <div class="mobile-menu-header">
+            <h3>Menu</h3>
+            <button class="close-btn" @click="toggleMobileMenu">
+              <i class="pi pi-times"></i>
+            </button>
+          </div>
+          <div class="mobile-menu-items">
+            <button
+              v-for="page in allPages"
+              :key="page.path"
+              class="mobile-menu-item"
+              @click="navigateToPage(page.path)"
+            >
+              <i :class="page.icon"></i>
+              <span>{{ page.label }}</span>
+            </button>
+            <button
+              v-if="isLoggedIn"
+              class="mobile-menu-item logout-item"
+              @click="logout"
+            >
+              <i class="pi pi-fw pi-sign-out"></i>
+              <span>Logout</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -161,58 +254,235 @@ function logout() {
   transform: translateY(10px);
 }
 
+/* Mobile Bottom Navigation - Hidden on desktop */
+.mobile-bottom-nav {
+  display: none;
+}
+
+.mobile-menu-overlay {
+  display: none;
+}
+
 @media (max-width: 768px) {
+  .app-container {
+    padding-bottom: 70px; /* Space for bottom nav */
+  }
+
   .app-header {
     padding: 0.5rem;
   }
   
   .header-content {
-    flex-direction: column;
-    align-items: stretch;
-    padding: 1rem;
-    gap: 0.5rem;
+    flex-direction: row;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    gap: 0.75rem;
   }
   
   .brand {
-    width: 100%;
-    justify-content: center;
+    width: auto;
+    justify-content: flex-start;
     margin-right: 0;
-    margin-bottom: 0.25rem;
+    margin-bottom: 0;
   }
   
   .app-title {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
   }
   
+  /* Hide desktop menu on mobile */
   .main-menu {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    background: var(--surface-50) !important;
-    border-radius: var(--radius-lg);
-    padding: 0.25rem !important;
-  }
-
-  /* Center the hamburger icon in the bar */
-  :deep(.p-menubar-button) {
-    width: 100%;
-    height: 40px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    display: none !important;
   }
 
   .app-auth {
-    display: none; /* Hide auth buttons container as they are in menu now (except login/register if not logged in, but user said put logout/profile in menu. Login/Register might still be outside? The previous step removed Profile/Logout from here if token exists. If !token, they are here. If !token, maybe we want them below too? Let's keep them for now, but the user focused on logged in state.) */
-    /* Actually, if !token, we still have Login/Register buttons. 
-       If we want strictly Brand -> Menu, we should probably put Login/Register in menu too or keep them below.
-       Let's assume the user cares about the Logged In state mainly. 
-       If I hide .app-auth, Login/Register will disappear. 
-       Let's keep .app-auth visible if it has content, but maybe center it too.
-    */
-    width: 100%;
+    display: none !important;
+  }
+
+  .app-main {
+    margin: 1rem auto;
+    padding: 0 1rem;
+  }
+
+  /* Mobile Bottom Navigation */
+  .mobile-bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border-top: 1px solid #e0e6ed;
+    padding: 8px;
+    justify-content: space-around;
+    align-items: center;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+  }
+
+  .nav-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
-    margin-top: 0.5rem;
+    gap: 4px;
+    padding: 8px 16px;
+    background: transparent;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 8px;
+    flex: 1;
+    max-width: 100px;
+  }
+
+  .nav-btn i {
+    font-size: 1.5rem;
+  }
+
+  .nav-btn span {
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .nav-btn:active {
+    transform: scale(0.95);
+  }
+
+  .nav-btn-primary {
+    color: #007acc;
+  }
+
+  .nav-btn-primary i {
+    font-size: 1.75rem;
+  }
+
+  /* Mobile Menu Drawer */
+  .mobile-menu-overlay {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 2000;
+  }
+
+  .mobile-menu-drawer {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 80%;
+    max-width: 300px;
+    background: #fff;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .mobile-menu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1rem;
+    border-bottom: 1px solid #e0e6ed;
+    background: linear-gradient(135deg, #007acc 0%, #005fa3 100%);
+  }
+
+  .mobile-menu-header h3 {
+    margin: 0;
+    color: #fff;
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+
+  .close-btn {
+    background: transparent;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: background 0.2s;
+  }
+
+  .close-btn i {
+    font-size: 1.5rem;
+  }
+
+  .close-btn:active {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  .mobile-menu-items {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+  }
+
+  .mobile-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: transparent;
+    border: none;
+    color: #333;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    font-size: 1rem;
+    margin-bottom: 4px;
+  }
+
+  .mobile-menu-item i {
+    font-size: 1.25rem;
+    color: #007acc;
+  }
+
+  .mobile-menu-item:active {
+    background: #f0f4f8;
+    transform: scale(0.98);
+  }
+
+  .logout-item {
+    margin-top: 8px;
+    border-top: 1px solid #e0e6ed;
+    padding-top: 18px;
+    color: #d32f2f;
+  }
+
+  .logout-item i {
+    color: #d32f2f;
+  }
+
+  /* Slide animation for drawer */
+  .slide-enter-active,
+  .slide-leave-active {
+    transition: opacity 0.3s ease;
+  }
+
+  .slide-enter-active .mobile-menu-drawer,
+  .slide-leave-active .mobile-menu-drawer {
+    transition: transform 0.3s ease;
+  }
+
+  .slide-enter-from,
+  .slide-leave-to {
+    opacity: 0;
+  }
+
+  .slide-enter-from .mobile-menu-drawer,
+  .slide-leave-to .mobile-menu-drawer {
+    transform: translateX(-100%);
   }
 }
 </style>

@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import Home from '../pages/Home.vue'
 import Flashcard from '../pages/Flashcard.vue'
 import FlashcardsList from '../pages/FlashcardsList.vue'
 import Quiz from '../pages/Quiz.vue'
@@ -10,7 +11,8 @@ import Images from '../pages/Images.vue'
 import Profile from '../pages/Profile.vue'
 
 const routes = [
-  { path: '/', redirect: '/flashcard' },
+  { path: '/', component: Home, meta: { requiresAuth: true } },
+  { path: '/home', component: Home, meta: { requiresAuth: true } },
   { path: '/flashcard', component: Flashcard, meta: { requiresAuth: true } },
   { path: '/flashcards', component: FlashcardsList, meta: { requiresAuth: true } },
   { path: '/quiz', component: Quiz, meta: { requiresAuth: true } },
