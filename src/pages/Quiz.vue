@@ -149,13 +149,37 @@ async function submit() {
 
         <div v-if="result" class="result-container">
           <div class="result-header">
-            <i class="pi pi-chart-bar"></i>
-            <h3>Quiz Results</h3>
+            <i class="pi pi-trophy result-icon"></i>
+            <h3>Quiz Completed!</h3>
           </div>
-          <div class="result-content">
-            <pre>{{ result }}</pre>
+          
+          <div class="score-section">
+            <div class="score-circle" :style="{ background: `conic-gradient(var(--primary-500) ${result.score}%, var(--surface-200) 0)` }">
+              <div class="score-inner">
+                <span class="score-value">{{ Math.round(result.score) }}%</span>
+                <span class="score-label">Score</span>
+              </div>
+            </div>
           </div>
-          <Button label="Start New Quiz" icon="pi pi-refresh" @click="gen" text class="w-full mt-4" />
+
+          <div class="stats-grid">
+            <div class="stat-card">
+              <span class="stat-label">Total</span>
+              <span class="stat-value">{{ result.total }}</span>
+            </div>
+            <div class="stat-card correct">
+              <span class="stat-label">Correct</span>
+              <span class="stat-value">{{ result.correct }}</span>
+            </div>
+            <div class="stat-card wrong">
+              <span class="stat-label">Wrong</span>
+              <span class="stat-value">{{ result.wrong }}</span>
+            </div>
+          </div>
+
+          <div class="result-actions">
+            <Button label="Start New Quiz" icon="pi pi-refresh" @click="gen" size="large" severity="primary" raised />
+          </div>
         </div>
       </template>
     </Card>
@@ -325,26 +349,124 @@ async function submit() {
 }
 
 .result-container {
-  background: var(--surface-50);
+  background: var(--surface-0);
   border-radius: var(--radius-lg);
-  padding: 1.5rem;
+  padding: 2.5rem;
   margin-top: 1rem;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
 }
 
 .result-header {
+  margin-bottom: 2rem;
+}
+
+.result-icon {
+  font-size: 3rem;
+  color: #fbbf24; /* Amber-400 for trophy */
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.result-header h3 {
+  font-size: 1.75rem;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.score-section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2.5rem;
+}
+
+.score-circle {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
+  justify-content: center;
+  position: relative;
+  transition: all 1s ease-out;
+}
+
+.score-inner {
+  width: 140px;
+  height: 140px;
+  background: var(--surface-0);
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.score-value {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--primary-600);
+  line-height: 1;
+}
+
+.score-label {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-top: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 2.5rem;
+}
+
+.stat-card {
+  background: var(--surface-50);
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--surface-200);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.stat-card.correct {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.stat-card.correct .stat-value {
+  color: #16a34a;
+}
+
+.stat-card.wrong {
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.stat-card.wrong .stat-value {
+  color: #dc2626;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
   color: var(--text-main);
 }
 
-.result-content pre {
-  background: var(--surface-900);
-  color: var(--surface-50);
-  padding: 1rem;
-  border-radius: var(--radius-md);
-  overflow-x: auto;
-  font-size: 0.85rem;
+.result-actions {
+  display: flex;
+  justify-content: center;
 }
 </style>
