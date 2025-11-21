@@ -4,6 +4,7 @@ import api from '../services/api'
 import Card from 'primevue/card'
 import ProgressBar from 'primevue/progressbar'
 import Paginator from 'primevue/paginator'
+import PageHeader from '../components/PageHeader.vue'
 
 const list = ref([])
 const page = ref(1)
@@ -41,10 +42,9 @@ onMounted(load)
 </script>
 
 <template>
-  <Card class="main-card">
-    <template #title>
-      All Flashcards
-    </template>
+  <div>
+    <PageHeader title="All Flashcards" subtitle="Browse your complete flashcard collection" />
+    <Card class="main-card">
     <template #content>
       <div v-if="loading" class="loading">Loading...</div>
       <div v-if="progress !== null" class="progress-section">
@@ -66,6 +66,7 @@ onMounted(load)
       </div>
     </template>
   </Card>
+  </div>
 </template>
 
 <style scoped>

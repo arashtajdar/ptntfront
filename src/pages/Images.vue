@@ -2,6 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import api from '../services/api'
 import categoriesData from '../../categories.json'
+import PageHeader from '../components/PageHeader.vue'
 
 const images = ref([])
 const loading = ref(false)
@@ -165,9 +166,7 @@ function clearSelection() {
 
 <template>
   <div class="images-container">
-    <div class="header-section">
-      <h1>Questions by Image</h1>
-    </div>
+    <PageHeader title="Questions by Image" subtitle="Browse traffic signs and their related questions" />
     
     <div v-if="loading" class="loading">
       <p>Loading images...</p>
@@ -245,20 +244,6 @@ function clearSelection() {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-}
-
-h1 {
-  text-align: center;
-  color: #007acc;
-  margin-bottom: 24px;
-  font-size: 2rem;
-}
-
-.header-section {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 32px;
 }
 
 h2 {

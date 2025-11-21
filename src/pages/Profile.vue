@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
+import PageHeader from '../components/PageHeader.vue'
 import api from '../services/api'
 import Card from 'primevue/card'
 import Avatar from 'primevue/avatar'
@@ -31,33 +32,36 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="profile-container">
-    <div v-if="loading" class="loading">Loading profile...</div>
-    <div v-else-if="error" class="error">{{ error }}</div>
-    <div v-else class="profile-content">
-      <Card class="profile-card">
-        <template #title>
-          <div class="user-header">
-            <Avatar :label="user.name.charAt(0)" size="xlarge" shape="circle" class="user-avatar" />
-            <div class="user-info">
-              <h1>{{ user.name }}</h1>
-              <p class="email">{{ user.email }}</p>
-            </div>
-          </div>
-        </template>
-        <template #content>
-          <div class="stats-section">
-            <h3>Your Progress</h3>
-            <div class="stats-grid">
-              <div class="stat-item">
-                <span class="stat-label">Questions Answered</span>
-                <span class="stat-value">{{ stats?.questions?.length || 0 }}</span>
+  <div>
+    <PageHeader title="Profile" subtitle="Manage your account information" />
+    <div class="profile-container">
+      <div v-if="loading" class="loading">Loading profile...</div>
+      <div v-else-if="error" class="error">{{ error }}</div>
+      <div v-else class="profile-content">
+        <Card class="profile-card">
+          <template #title>
+            <div class="user-header">
+              <Avatar :label="user.name.charAt(0)" size="xlarge" shape="circle" class="user-avatar" />
+              <div class="user-info">
+                <h1>{{ user.name }}</h1>
+                <p class="email">{{ user.email }}</p>
               </div>
-              <!-- Add more stats as needed based on actual data structure -->
             </div>
-          </div>
-        </template>
-      </Card>
+          </template>
+          <template #content>
+            <div class="stats-section">
+              <h3>Your Progress</h3>
+              <div class="stats-grid">
+                <div class="stat-item">
+                  <span class="stat-label">Questions Answered</span>
+                  <span class="stat-value">{{ stats?.questions?.length || 0 }}</span>
+                </div>
+                <!-- Add more stats as needed based on actual data structure -->
+              </div>
+            </div>
+          </template>
+        </Card>
+      </div>
     </div>
   </div>
 </template>

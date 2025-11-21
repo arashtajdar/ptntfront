@@ -1,5 +1,6 @@
 <script setup>
 import { useRouter } from 'vue-router'
+import PageHeader from '../components/PageHeader.vue'
 
 const router = useRouter()
 
@@ -62,10 +63,7 @@ function navigateTo(path) {
 
 <template>
   <div class="home-container">
-    <div class="header-section">
-      <h1>Welcome to PTNT</h1>
-      <p class="subtitle">Choose a section to get started</p>
-    </div>
+    <PageHeader title="Welcome to PTNT" subtitle="Choose a section to get started" />
 
     <div class="cards-grid">
       <div 
@@ -90,28 +88,6 @@ function navigateTo(path) {
   max-width: 1400px;
   margin: 0 auto;
   padding: 40px 24px;
-}
-
-.header-section {
-  text-align: center;
-  margin-bottom: 48px;
-}
-
-h1 {
-  font-size: 3rem;
-  font-weight: 700;
-  color: #1a1a1a;
-  margin-bottom: 12px;
-  background: linear-gradient(135deg, #007acc 0%, #005fa3 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.subtitle {
-  font-size: 1.25rem;
-  color: #666;
-  font-weight: 400;
 }
 
 .cards-grid {

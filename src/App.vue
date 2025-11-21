@@ -268,40 +268,14 @@ function navigateToPage(path) {
     padding-bottom: 70px; /* Space for bottom nav */
   }
 
+  /* Completely hide app-header on mobile */
   .app-header {
-    padding: 0.5rem;
-  }
-  
-  .header-content {
-    flex-direction: row;
-    align-items: center;
-    padding: 0.75rem 1rem;
-    gap: 0.75rem;
-  }
-  
-  .brand {
-    width: auto;
-    justify-content: flex-start;
-    margin-right: 0;
-    margin-bottom: 0;
-  }
-  
-  .app-title {
-    font-size: 1.1rem;
-  }
-  
-  /* Hide desktop menu on mobile */
-  .main-menu {
-    display: none !important;
-  }
-
-  .app-auth {
     display: none !important;
   }
 
   .app-main {
-    margin: 1rem auto;
-    padding: 0 1rem;
+    margin: 0;
+    padding: 0;
   }
 
   /* Mobile Bottom Navigation */

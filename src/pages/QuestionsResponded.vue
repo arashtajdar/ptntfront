@@ -5,6 +5,7 @@ import InputText from 'primevue/inputtext'
 import Button from 'primevue/button'
 import Dropdown from 'primevue/dropdown'
 import Paginator from 'primevue/paginator'
+import PageHeader from '../components/PageHeader.vue'
 
 const list = ref([])
 const loading = ref(false)
@@ -55,8 +56,9 @@ onMounted(load)
 </script>
 
 <template>
-  <div class="card">
-    <h2 class="card-title">My Responded Questions</h2>
+  <div>
+    <PageHeader title="My Responded Questions" subtitle="Review your quiz history and performance" />
+    <div class="card">
     <div class="search-bar">
       <InputText v-model="search" @keyup.enter="doSearch" placeholder="Search text..." class="input" style="width:180px" />
       <Button label="Search" icon="pi pi-search" @click="doSearch" class="p-button-sm" />
@@ -79,6 +81,7 @@ onMounted(load)
     <div v-if="last_page > 1" class="pagination">
       <Paginator :rows="1" :totalRecords="last_page" :first="page-1" :pageLinkSize="5" @page="onPageChange" />
     </div>
+    </div>
   </div>
 </template>
 
@@ -91,11 +94,7 @@ onMounted(load)
   max-width: 100%;
   margin: 0 auto;
 }
-.card-title {
-  margin-bottom: 24px;
-  color: #007acc;
-  text-align: center;
-}
+
 .search-bar {
   display: flex;
   gap: 8px;

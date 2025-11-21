@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import api from '../services/api'
 import Card from 'primevue/card'
+import PageHeader from '../components/PageHeader.vue'
 
 const list = ref([])
 const loading = ref(false)
@@ -17,10 +18,9 @@ onMounted(load)
 </script>
 
 <template>
-  <Card class="main-card">
-    <template #title>
-      My Responded Flashcards
-    </template>
+  <div>
+    <PageHeader title="My Responded Flashcards" subtitle="Track your flashcard practice progress" />
+    <Card class="main-card">
     <template #content>
       <div v-if="loading" class="loading">Loading...</div>
       <div v-if="list.length === 0" class="empty">No flashcards answered yet.</div>
@@ -32,6 +32,7 @@ onMounted(load)
       </ul>
     </template>
   </Card>
+  </div>
 </template>
 
 <style scoped>

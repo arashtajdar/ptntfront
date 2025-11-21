@@ -3,6 +3,7 @@ import { ref, nextTick } from 'vue'
 import api from '../services/api'
 import Card from 'primevue/card'
 import Button from 'primevue/button'
+import PageHeader from '../components/PageHeader.vue'
 
 const questions = ref([])
 const loading = ref(false)
@@ -46,7 +47,9 @@ async function submit() {
 </script>
 
 <template>
-  <div class="quiz-container">
+  <div>
+    <PageHeader title="Quiz Challenge" subtitle="Test your knowledge with 30 questions" />
+    <div class="quiz-container">
     <Card class="quiz-card">
       <template #title>
         <div class="quiz-header">
@@ -196,6 +199,7 @@ async function submit() {
         </div>
       </template>
     </Card>
+    </div>
   </div>
 </template>
 

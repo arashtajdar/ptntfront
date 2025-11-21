@@ -4,6 +4,7 @@ import api from '../services/api'
 import Card from 'primevue/card'
 import ProgressBar from 'primevue/progressbar'
 import Button from 'primevue/button'
+import PageHeader from '../components/PageHeader.vue'
 
 const card = ref(null)
 const progress = ref(null)
@@ -48,7 +49,9 @@ onMounted(load)
 </script>
 
 <template>
-  <div class="flashcard-container">
+  <div>
+    <PageHeader title="Flashcard Practice" subtitle="Master Italian driving terms" />
+    <div class="flashcard-container">
     <Card class="flashcard-panel">
       <template #title>
         <div class="card-header">
@@ -136,6 +139,7 @@ onMounted(load)
         </div>
       </template>
     </Card>
+    </div>
   </div>
 </template>
 
