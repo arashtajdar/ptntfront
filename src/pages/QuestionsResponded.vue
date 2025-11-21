@@ -1,28 +1,31 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import api from '../services/api'
 import InputText from 'primevue/inputtext'
 import Button from 'primevue/button'
 import Dropdown from 'primevue/dropdown'
 import Paginator from 'primevue/paginator'
+import Skeleton from 'primevue/skeleton'
+import Tag from 'primevue/tag'
 import PageHeader from '../components/PageHeader.vue'
 
 const list = ref([])
 const loading = ref(false)
 const page = ref(1)
-const per_page = ref(10)
+const per_page = ref(9)
 const total = ref(0)
 const last_page = ref(1)
 const search = ref('')
 const filter_stats = ref('correct')
 const filterOptions = [
-  { label: 'Correct', value: 'correct' },
-  { label: 'Wrong', value: 'wrong' },
-  { label: 'None', value: 'none' }
+  { label: 'Correctly Answered', value: 'correct', icon: 'pi pi-check-circle', class: 'text-green-500' },
+  { label: 'Wrongly Answered', value: 'wrong', icon: 'pi pi-times-circle', class: 'text-red-500' },
+  { label: 'All Questions', value: 'none', icon: 'pi pi-list', class: 'text-primary-500' }
 ]
 
 async function load() {
   loading.value = true
+  // Simulate network delay for skeleton demo if needed, but api call is real
   const res = await api.listQuestions(page.value, per_page.value, search.value, filter_stats.value)
   if (res && res.data) {
     list.value = res.data
@@ -52,89 +55,383 @@ function onPageChange(e) {
   load()
 }
 
+// Debounce search
+let timeout = null
+watch(search, (newVal) => {
+  clearTimeout(timeout)
+  timeout = setTimeout(() => {
+    doSearch()
+  }, 500)
+})
+
 onMounted(load)
 </script>
 
 <template>
-  <div>
+  <div class="page-wrapper">
     <PageHeader title="My Responded Questions" subtitle="Review your quiz history and performance" />
-    <div class="card">
-    <div class="search-bar">
-      <InputText v-model="search" @keyup.enter="doSearch" placeholder="Search text..." class="input" style="width:180px" />
-      <Button label="Search" icon="pi pi-search" @click="doSearch" class="p-button-sm" />
-      <Dropdown v-model="filter_stats" :options="filterOptions" optionLabel="label" optionValue="value" @change="setFilter(filter_stats)" style="margin-left:8px;width:120px" />
-    </div>
-    <div v-if="loading" class="loading">Loading...</div>
-    <div v-if="list.length === 0 && !loading" class="empty">No answered questions yet.</div>
-    <ul class="resp-list">
-      <li v-for="q in list" :key="q.id" class="resp-list-item">
-        <div><strong>#{{ q.id }}</strong> {{ q.text }}</div>
-        <div v-if="q.image" style="margin:6px 0"><img :src="'/images/'+q.image" alt="question image" style="max-width:120px;border-radius:6px" /></div>
-        <div class="meta">
-          Answer: {{ q.answer }}
-          <span v-if="q.correct_count !== undefined"> | Correct: {{ q.correct_count }}</span>
-          <span v-if="q.wrong_count !== undefined"> | Wrong: {{ q.wrong_count }}</span>
-          <span v-if="q.last_attempted"> | Last Attempt: {{ q.last_attempted }}</span>
+    
+    <div class="content-container">
+      <!-- Modern Search & Filter Toolbar -->
+      <div class="toolbar">
+        <div class="search-container">
+          <i class="pi pi-search search-icon"></i>
+          <InputText 
+            v-model="search" 
+            placeholder="Search questions..." 
+            class="search-input" 
+          />
         </div>
-      </li>
-    </ul>
-    <div v-if="last_page > 1" class="pagination">
-      <Paginator :rows="1" :totalRecords="last_page" :first="page-1" :pageLinkSize="5" @page="onPageChange" />
-    </div>
+        
+        <div class="filter-container">
+          <Dropdown 
+            v-model="filter_stats" 
+            :options="filterOptions" 
+            optionLabel="label" 
+            optionValue="value" 
+            @change="setFilter(filter_stats)" 
+            class="filter-dropdown"
+          >
+            <template #value="slotProps">
+              <div v-if="slotProps.value" class="flex align-items-center">
+                <i :class="filterOptions.find(o => o.value === slotProps.value)?.icon" class="mr-2"></i>
+                {{ filterOptions.find(o => o.value === slotProps.value)?.label }}
+              </div>
+              <span v-else>
+                {{ slotProps.placeholder }}
+              </span>
+            </template>
+            <template #option="slotProps">
+              <div class="flex align-items-center">
+                <i :class="slotProps.option.icon" class="mr-2" :style="{ color: slotProps.option.value === 'correct' ? '#22c55e' : slotProps.option.value === 'wrong' ? '#ef4444' : 'var(--primary-500)' }"></i>
+                <div>{{ slotProps.option.label }}</div>
+              </div>
+            </template>
+          </Dropdown>
+        </div>
+      </div>
+
+      <!-- Loading Skeletons -->
+      <div v-if="loading" class="questions-grid">
+        <div v-for="i in 6" :key="i" class="question-card skeleton-card">
+          <div class="card-header">
+            <Skeleton width="40px" height="24px" class="mb-2"></Skeleton>
+            <Skeleton width="100%" height="24px"></Skeleton>
+          </div>
+          <div class="card-body">
+            <Skeleton width="100%" height="150px" class="mb-3"></Skeleton>
+            <Skeleton width="60%" height="20px"></Skeleton>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div v-else-if="list.length === 0" class="empty-state">
+        <div class="empty-icon-wrapper">
+          <i class="pi pi-search" style="font-size: 2rem; color: var(--text-secondary)"></i>
+        </div>
+        <h3>No questions found</h3>
+        <p>Try adjusting your search or filters</p>
+        <Button label="Clear Filters" text @click="() => { search = ''; filter_stats = 'none'; doSearch() }" />
+      </div>
+
+      <!-- Questions Grid -->
+      <div v-else class="questions-grid">
+        <div v-for="q in list" :key="q.id" class="question-card">
+          <div class="card-status-stripe" :class="q.correct_count > q.wrong_count ? 'status-green' : 'status-red'"></div>
+          
+          <div class="card-content">
+            <div class="card-header">
+              <span class="id-badge">#{{ q.id }}</span>
+              <h3 class="question-text" :title="q.text">{{ q.text }}</h3>
+            </div>
+
+            <div class="image-container" v-if="q.image">
+              <img :src="'/images/'+q.image" alt="Question Image" loading="lazy" />
+            </div>
+            <div class="no-image-placeholder" v-else>
+              <i class="pi pi-image" style="font-size: 1.5rem; opacity: 0.3;"></i>
+            </div>
+
+            <div class="card-footer">
+              <div class="answer-info">
+                <span class="label">Answer:</span>
+                <span class="value">{{ q.answer }}</span>
+              </div>
+              
+              <div class="stats-badges">
+                <Tag :value="q.correct_count || 0" severity="success" icon="pi pi-check" rounded></Tag>
+                <Tag :value="q.wrong_count || 0" severity="danger" icon="pi pi-times" rounded></Tag>
+              </div>
+            </div>
+            
+            <div class="last-attempt" v-if="q.last_attempted">
+              <i class="pi pi-clock"></i>
+              <span>{{ new Date(q.last_attempted).toLocaleDateString() }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div v-if="last_page > 1" class="pagination-container">
+        <Paginator 
+          :rows="per_page" 
+          :totalRecords="total" 
+          :first="(page - 1) * per_page" 
+          @page="onPageChange"
+          template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink"
+        />
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.card {
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  padding: 32px 24px;
-  max-width: 100%;
+.page-wrapper {
+  max-width: 1200px;
   margin: 0 auto;
+  padding-bottom: 2rem;
 }
 
-.search-bar {
+.content-container {
+  padding: 0 1rem;
+}
+
+/* Toolbar & Search */
+.toolbar {
   display: flex;
-  gap: 8px;
-  margin-bottom: 18px;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  background: var(--surface-0);
+  padding: 1rem;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.search-container {
+  position: relative;
+  flex: 1;
+  min-width: 250px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-secondary);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  padding-left: 2.5rem !important; /* Space for icon */
+  border-radius: 50px !important;
+  border: 1px solid var(--surface-300);
+  transition: all 0.2s;
+}
+
+.search-input:focus {
+  box-shadow: 0 0 0 2px var(--primary-200);
+  border-color: var(--primary-500);
+}
+
+.filter-container {
+  min-width: 200px;
+}
+
+.filter-dropdown {
+  width: 100%;
+  border-radius: 50px;
+}
+
+/* Grid Layout */
+.questions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Question Card */
+.question-card {
+  background: var(--surface-0);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--surface-200);
+}
+
+.question-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
+
+.card-status-stripe {
+  height: 4px;
+  width: 100%;
+}
+
+.status-green { background: #22c55e; }
+.status-red { background: #ef4444; }
+
+.card-content {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 1rem;
+}
+
+.card-header {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.id-badge {
+  background: var(--surface-100);
+  color: var(--text-secondary);
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.question-text {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.4;
+  color: var(--text-main);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.image-container {
+  width: 100%;
+  height: 160px;
+  background: var(--surface-50);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  display: flex;
   align-items: center;
   justify-content: center;
+  border: 1px solid var(--surface-100);
 }
-.input {
-  padding: 6px 10px;
-  border: 1px solid #e0e6ed;
-  border-radius: 5px;
-  font-size: 1rem;
+
+.image-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
-.resp-list {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 18px 0;
+
+.no-image-placeholder {
+  width: 100%;
+  height: 100px; /* Smaller placeholder */
+  background: var(--surface-50);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed var(--surface-200);
 }
-.resp-list-item {
-  padding: 14px 0;
-  border-bottom: 1px solid #e0e6ed;
-  font-size: 1.1rem;
+
+.card-footer {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 1rem;
+  border-top: 1px solid var(--surface-100);
 }
-.meta {
-  color: #888;
-  font-size: 0.95rem;
+
+.answer-info {
+  display: flex;
+  flex-direction: column;
 }
-.loading {
-  color: #888;
+
+.answer-info .label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.answer-info .value {
+  font-weight: 700;
+  color: var(--primary-600);
+}
+
+.stats-badges {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.last-attempt {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 0.5rem;
+}
+
+/* Empty State */
+.empty-state {
   text-align: center;
-  margin-bottom: 12px;
+  padding: 4rem 2rem;
+  background: var(--surface-0);
+  border-radius: var(--radius-lg);
+  border: 1px dashed var(--surface-300);
 }
-.empty {
-  color: #888;
-  text-align: center;
-  margin-bottom: 12px;
+
+.empty-icon-wrapper {
+  width: 80px;
+  height: 80px;
+  background: var(--surface-100);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
 }
-.pagination {
-  margin-top: 18px;
+
+.empty-state h3 {
+  margin: 0 0 0.5rem;
+  color: var(--text-main);
+}
+
+.empty-state p {
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+}
+
+/* Pagination */
+.pagination-container {
   display: flex;
   justify-content: center;
+  margin-top: 1rem;
+}
+
+@media (max-width: 640px) {
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .search-container, .filter-container {
+    width: 100%;
+  }
 }
 </style>
