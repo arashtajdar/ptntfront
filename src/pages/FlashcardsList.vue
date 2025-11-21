@@ -14,16 +14,20 @@ const progress = ref(null)
 
 async function load() {
   loading.value = true
-  const [flashRes, progRes] = await Promise.all([
-    api.listFlashcards(page.value, per_page.value),
-    api.getOverallProgress()
-  ])
-  if (flashRes && flashRes.translations) {
-    list.value = flashRes.translations
-    pagination.value = flashRes.pagination
-  }
-  if (progRes && typeof progRes.percentage !== 'undefined') {
-    progress.value = progRes.percentage
+  try {
+    const [flashRes, progRes] = await Promise.all([
+      api.listFlashcards(page.value, per_page.value),
+      api.getOverallProgress()
+    ])
+    if (flashRes && flashRes.translations) {
+      list.value = flashRes.translations
+      pagination.value = flashRes.pagination
+    }
+    if (progRes && typeof progRes.percentage !== 'undefined') {
+      progress.value = progRes.percentage
+    }
+  } catch (e) {
+    console.error('Failed to load flashcards:', e)
   }
   loading.value = false
 }
@@ -43,9 +47,12 @@ onMounted(load)
     </template>
     <template #content>
       <div v-if="loading" class="loading">Loading...</div>
-      <div v-if="progress !== null" class="progress-bar">
-        <span>Progress:</span>
-        <ProgressBar :value="progress" showValue />
+      <div v-if="progress !== null" class="progress-section">
+        <div class="progress-label">
+          <span>Progress</span>
+          <span class="progress-value">{{ progress }}%</span>
+        </div>
+        <ProgressBar :value="progress" :showValue="false" style="height: 8px; border-radius: 4px" />
       </div>
       <div v-if="list.length === 0" class="empty">No flashcards</div>
       <ul class="flashcard-list">
@@ -95,8 +102,15 @@ onMounted(load)
   text-align: center;
   margin-bottom: 12px;
 }
-.progress-bar {
-  margin-bottom: 18px;
-  text-align: center;
+.progress-section {
+  margin-bottom: 2rem;
+}
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
 }
 </style>
