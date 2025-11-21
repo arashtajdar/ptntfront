@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, nextTick } from 'vue'
 import api from '../services/api'
 import Card from 'primevue/card'
 import Button from 'primevue/button'
@@ -8,6 +8,7 @@ const questions = ref([])
 const loading = ref(false)
 const result = ref(null)
 const current = ref(0)
+const resultContainer = ref(null)
 
 async function gen() {
   loading.value = true
@@ -37,6 +38,10 @@ async function submit() {
   const answers = questions.value.map(q => q._answer || '')
   const res = await api.submitQuiz({ question_ids: ids, answers })
   result.value = res
+  await nextTick()
+  if (resultContainer.value) {
+    resultContainer.value.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
 }
 </script>
 
@@ -147,16 +152,24 @@ async function submit() {
           </div>
         </div>
 
-        <div v-if="result" class="result-container">
+        <div v-if="result" ref="resultContainer" class="result-container">
           <div class="result-header">
-            <i class="pi pi-trophy result-icon"></i>
-            <h3>Quiz Completed!</h3>
+            <i :class="['pi', result.wrong <= 3 ? 'pi-check-circle' : 'pi-times-circle', 'result-icon']" 
+               :style="{ color: result.wrong <= 3 ? '#22c55e' : '#ef4444' }"></i>
+            <h3 :style="{ color: result.wrong <= 3 ? '#22c55e' : '#ef4444' }">
+              {{ result.wrong <= 3 ? 'You Passed!' : 'You Failed!' }}
+            </h3>
+            <p v-if="result.wrong > 3" style="color: var(--text-secondary); margin-top: 0.5rem; font-size: 0.9rem">
+              Max 3 errors allowed
+            </p>
           </div>
           
           <div class="score-section">
-            <div class="score-circle" :style="{ background: `conic-gradient(var(--primary-500) ${result.score}%, var(--surface-200) 0)` }">
+            <div class="score-circle" :style="{ background: `conic-gradient(${result.wrong <= 3 ? '#22c55e' : '#ef4444'} ${result.score}%, var(--surface-200) 0)` }">
               <div class="score-inner">
-                <span class="score-value">{{ Math.round(result.score) }}%</span>
+                <span class="score-value" :style="{ color: result.wrong <= 3 ? '#22c55e' : '#ef4444' }">
+                  {{ Math.round(result.score) }}%
+                </span>
                 <span class="score-label">Score</span>
               </div>
             </div>
