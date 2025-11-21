@@ -19,7 +19,7 @@ const menuItems = computed(() => [
     icon: 'pi pi-fw pi-book',
     items: [
       { label: 'All Flashcards', icon: 'pi pi-fw pi-clone', command: () => router.push('/flashcards') },
-      { label: 'Segnali', icon: 'pi pi-fw pi-images', command: () => router.push('/images') }
+      { label: 'Segnali', icon: 'pi pi-fw pi-images', command: () => router.push('/signs') }
     ]
   },
   {

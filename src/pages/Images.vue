@@ -1,15 +1,82 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import api from '../services/api'
+import categoriesData from '../../categories.json'
 
 const images = ref([])
 const loading = ref(false)
 const selectedImage = ref(null)
 const selectedQuestions = ref([])
 const cacheExpiry = ref(null)
+const selectedCategory = ref('all')
 
 const CACHE_KEY = 'images_list_cache'
 const CACHE_TTL = 1 * 60 * 60 * 1000 // 1 hour in milliseconds
+
+// Computed property to categorize images
+const categorizedImages = computed(() => {
+  const categories = {}
+  const imageFilenamesToCategory = {}
+  
+  // Build a map of filename -> category name
+  for (const [categoryName, filenames] of Object.entries(categoriesData)) {
+    filenames.forEach(filename => {
+      imageFilenamesToCategory[filename] = categoryName
+    })
+  }
+  
+  // Categorize images
+  images.value.forEach(imageItem => {
+    const category = imageFilenamesToCategory[imageItem.image] || 'other'
+    if (!categories[category]) {
+      categories[category] = []
+    }
+    categories[category].push(imageItem)
+  })
+  
+  // Sort images within each category
+  for (const category in categories) {
+    categories[category].sort((a, b) => {
+      return a.image.localeCompare(b.image, undefined, { numeric: true })
+    })
+  }
+  
+  // Return categories in order, with 'other' last
+  const sortedCategories = []
+  for (const [categoryName, categoryImages] of Object.entries(categories)) {
+    if (categoryName !== 'other') {
+      sortedCategories.push({ name: categoryName, images: categoryImages, count: categoryImages.length })
+    }
+  }
+  
+  // Add 'other' category at the end if it exists
+  if (categories['other']) {
+    sortedCategories.push({ name: 'other', images: categories['other'], count: categories['other'].length })
+  }
+  
+  return sortedCategories
+})
+
+// Filtered images based on selected category
+const filteredImages = computed(() => {
+  if (selectedCategory.value === 'all') {
+    return categorizedImages.value
+  }
+  return categorizedImages.value.filter(cat => cat.name === selectedCategory.value)
+})
+
+// Get total count of all images
+const allImagesCount = computed(() => {
+  return images.value.length
+})
+
+function selectCategory(categoryName) {
+  selectedCategory.value = categoryName
+}
+
+function getCategoryDisplayName(name) {
+  return name.charAt(0).toUpperCase() + name.slice(1)
+}
 
 onMounted(async () => {
   await fetchImages()
@@ -106,17 +173,40 @@ function clearSelection() {
       <p>Loading images...</p>
     </div>
 
-    <div v-if="!loading && !selectedImage" class="images-grid">
+    <div v-if="!loading && !selectedImage" class="categories-container">
+      <!-- Category Filter Navigation -->
+      <div class="category-filter-nav">
+        <button 
+          @click="selectCategory('all')" 
+          :class="['category-btn', { active: selectedCategory === 'all' }]"
+        >
+          All ({{ allImagesCount }})
+        </button>
+        <button 
+          v-for="category in categorizedImages" 
+          :key="category.name"
+          @click="selectCategory(category.name)" 
+          :class="['category-btn', { active: selectedCategory === category.name }]"
+        >
+          {{ getCategoryDisplayName(category.name) }} ({{ category.count }})
+        </button>
+      </div>
+
       <div v-if="images.length === 0" class="no-images">
         <p>No images found</p>
       </div>
       
-      <div v-for="(item, index) in images" :key="index" class="image-card" @click="selectImage(item)">
-        <div class="image-wrapper">
-          <img :src="`/images/${item.image}`" :alt="item.image" class="image-thumb" />
-        </div>
-        <div class="image-info">
-          <p class="question-count">{{ item.questions.length }} question(s)</p>
+      <div v-for="category in filteredImages" :key="category.name" class="category-section">
+        <h2 class="category-title">{{ getCategoryDisplayName(category.name) }}</h2>
+        <div class="images-grid">
+          <div v-for="(item, index) in category.images" :key="index" class="image-card" @click="selectImage(item)">
+            <div class="image-wrapper">
+              <img :src="`/images/${item.image}`" :alt="item.image" class="image-thumb" />
+            </div>
+            <div class="image-info">
+              <p class="question-count">{{ item.questions.length }} question(s)</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -189,11 +279,72 @@ h2 {
   color: #999;
 }
 
+.categories-container {
+  width: 100%;
+}
+
+.category-filter-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 32px;
+  padding: 16px;
+  background: #f7f9fc;
+  border-radius: 8px;
+  border: 1px solid #e0e6ed;
+}
+
+.category-btn {
+  padding: 10px 16px;
+  background: #fff;
+  border: 2px solid #e0e6ed;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.category-btn:hover {
+  border-color: #007acc;
+  color: #007acc;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 122, 204, 0.1);
+}
+
+.category-btn.active {
+  background: #007acc;
+  border-color: #007acc;
+  color: white;
+  font-weight: 600;
+}
+
+.category-btn.active:hover {
+  background: #005fa3;
+  border-color: #005fa3;
+  transform: translateY(-2px);
+}
+
+.category-section {
+  margin-bottom: 48px;
+}
+
+.category-title {
+  color: #007acc;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #e0e6ed;
+  text-transform: capitalize;
+}
+
 .images-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 16px;
-  margin-bottom: 32px;
 }
 
 .image-card {

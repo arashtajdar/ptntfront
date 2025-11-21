@@ -16,7 +16,7 @@ const routes = [
   { path: '/quiz', component: Quiz, meta: { requiresAuth: true } },
   { path: '/questions-responded', component: QuestionsResponded, meta: { requiresAuth: true } },
   { path: '/flashcards-responded', component: FlashcardsResponded, meta: { requiresAuth: true } },
-  { path: '/images', component: Images, meta: { requiresAuth: true } },
+  { path: '/signs', component: Images, meta: { requiresAuth: true } },
   { path: '/profile', component: Profile, meta: { requiresAuth: true } },
   { path: '/login', component: Login },
   { path: '/register', component: Register }
