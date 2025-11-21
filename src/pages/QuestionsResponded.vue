@@ -67,7 +67,7 @@ onMounted(load)
     <ul class="resp-list">
       <li v-for="q in list" :key="q.id" class="resp-list-item">
         <div><strong>#{{ q.id }}</strong> {{ q.text }}</div>
-        <div v-if="q.image" style="margin:6px 0"><img :src="'/public/images/'+q.image" alt="question image" style="max-width:120px;border-radius:6px" /></div>
+        <div v-if="q.image" style="margin:6px 0"><img :src="'/images/'+q.image" alt="question image" style="max-width:120px;border-radius:6px" /></div>
         <div class="meta">
           Answer: {{ q.answer }}
           <span v-if="q.correct_count !== undefined"> | Correct: {{ q.correct_count }}</span>

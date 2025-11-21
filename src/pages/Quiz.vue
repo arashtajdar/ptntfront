@@ -78,7 +78,7 @@ async function submit() {
             <h3 class="question-text">{{ questions[current].text }}</h3>
             
             <div v-if="questions[current].image" class="question-image">
-              <img :src="'/public/images/'+questions[current].image" alt="Question Image" />
+              <img :src="'/images/'+questions[current].image" alt="Question Image" />
             </div>
 
             <div class="answer-actions">
