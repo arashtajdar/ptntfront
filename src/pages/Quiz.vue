@@ -77,8 +77,8 @@ async function submit() {
           <div class="question-box">
             <h3 class="question-text">{{ questions[current].text }}</h3>
             
-            <div v-if="questions[current].image" class="question-image">
-              <img :src="'/images/'+questions[current].image" alt="Question Image" />
+            <div class="question-image">
+              <img :src="questions[current].image ? '/images/'+questions[current].image : '/images/no-image.svg'" alt="Question Image" />
             </div>
 
             <div class="answer-actions">
@@ -251,12 +251,21 @@ async function submit() {
   line-height: 1.4;
 }
 
-.question-image img {
-  max-width: 100%;
-  max-height: 300px;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
+.question-image {
+  height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin-bottom: 1.5rem;
+  background-color: var(--surface-50);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.question-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .answer-actions {
