@@ -9,6 +9,7 @@ import QuestionsResponded from '../pages/QuestionsResponded.vue'
 import FlashcardsResponded from '../pages/FlashcardsResponded.vue'
 import Images from '../pages/Images.vue'
 import Profile from '../pages/Profile.vue'
+import AllQuestions from '../pages/AllQuestions.vue'
 
 const routes = [
   { path: '/', component: Home, meta: { requiresAuth: true } },
@@ -19,6 +20,7 @@ const routes = [
   { path: '/questions-responded', component: QuestionsResponded, meta: { requiresAuth: true } },
   { path: '/flashcards-responded', component: FlashcardsResponded, meta: { requiresAuth: true } },
   { path: '/signs', component: Images, meta: { requiresAuth: true } },
+  { path: '/all-questions', component: AllQuestions, meta: { requiresAuth: true } },
   { path: '/profile', component: Profile, meta: { requiresAuth: true } },
   { path: '/login', component: Login },
   { path: '/register', component: Register }

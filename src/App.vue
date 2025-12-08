@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import Toast from 'primevue/toast'
 
 const router = useRouter()
 const route = useRoute()
@@ -27,6 +28,7 @@ const allPages = computed(() => [
   { label: 'Flashcard Practice', icon: 'pi pi-fw pi-bolt', path: '/flashcard' },
   { label: 'Take Quiz', icon: 'pi pi-fw pi-question-circle', path: '/quiz' },
   { label: 'All Flashcards', icon: 'pi pi-fw pi-clone', path: '/flashcards' },
+  { label: 'All Questions', icon: 'pi pi-fw pi-list', path: '/all-questions' },
   { label: 'Segnali', icon: 'pi pi-fw pi-images', path: '/signs' },
   { label: 'Answered Questions', icon: 'pi pi-fw pi-check-circle', path: '/questions-responded' },
   { label: 'Studied Flashcards', icon: 'pi pi-fw pi-bookmark', path: '/flashcards-responded' },
@@ -54,6 +56,7 @@ const menuItems = computed(() => [
     icon: 'pi pi-fw pi-book',
     items: [
       { label: 'All Flashcards', icon: 'pi pi-fw pi-clone', command: () => router.push('/flashcards') },
+      { label: 'All Questions', icon: 'pi pi-fw pi-list', command: () => router.push('/all-questions') },
       { label: 'Segnali', icon: 'pi pi-fw pi-images', command: () => router.push('/signs') }
     ]
   },
@@ -114,6 +117,7 @@ function navigateToPage(path) {
     </header>
     
     <main class="app-main">
+      <Toast />
       <router-view v-slot="{ Component }">
         <transition name="fade" mode="out-in">
           <component :is="Component" />

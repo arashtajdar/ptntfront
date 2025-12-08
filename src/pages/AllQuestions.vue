@@ -3,10 +3,8 @@ import { ref, onMounted, watch } from 'vue'
 import api from '../services/api'
 import InputText from 'primevue/inputtext'
 import Button from 'primevue/button'
-import Dropdown from 'primevue/dropdown'
 import Paginator from 'primevue/paginator'
 import Skeleton from 'primevue/skeleton'
-import Tag from 'primevue/tag'
 import PageHeader from '../components/PageHeader.vue'
 
 const list = ref([])
@@ -16,14 +14,8 @@ const per_page = ref(9)
 const total = ref(0)
 const last_page = ref(1)
 const search = ref('')
-const filter_stats = ref('correct')
 const user = ref(null)
 const showFarsi = ref(false)
-const filterOptions = [
-  { label: 'Correctly Answered', value: 'correct', icon: 'pi pi-check-circle', class: 'text-green-500' },
-  { label: 'Wrongly Answered', value: 'wrong', icon: 'pi pi-times-circle', class: 'text-red-500' },
-  { label: 'All Questions', value: 'none', icon: 'pi pi-list', class: 'text-primary-500' }
-]
 
 async function loadProfile() {
   try {
@@ -39,8 +31,8 @@ async function loadProfile() {
 
 async function load() {
   loading.value = true
-  // Simulate network delay for skeleton demo if needed, but api call is real
-  const res = await api.listQuestions(page.value, per_page.value, search.value, filter_stats.value)
+  // Fetch all questions without filter_stats parameter
+  const res = await api.listAllQuestions(page.value, per_page.value, search.value)
   if (res && res.data) {
     list.value = res.data
     total.value = res.total
@@ -54,12 +46,6 @@ async function load() {
 }
 
 function doSearch() {
-  page.value = 1
-  load()
-}
-
-function setFilter(val) {
-  filter_stats.value = val
   page.value = 1
   load()
 }
@@ -86,10 +72,10 @@ onMounted(async () => {
 
 <template>
   <div class="page-wrapper">
-    <PageHeader title="My Responded Questions" subtitle="Review your quiz history and performance" />
+    <PageHeader title="All Questions" subtitle="Browse the complete question library" />
     
     <div class="content-container">
-      <!-- Modern Search & Filter Toolbar -->
+      <!-- Modern Search Toolbar -->
       <div class="toolbar">
         <div class="search-container">
           <i class="pi pi-search search-icon"></i>
@@ -98,33 +84,6 @@ onMounted(async () => {
             placeholder="Search questions..." 
             class="search-input" 
           />
-        </div>
-        
-        <div class="filter-container">
-          <Dropdown 
-            v-model="filter_stats" 
-            :options="filterOptions" 
-            optionLabel="label" 
-            optionValue="value" 
-            @change="setFilter(filter_stats)" 
-            class="filter-dropdown"
-          >
-            <template #value="slotProps">
-              <div v-if="slotProps.value" class="flex align-items-center">
-                <i :class="filterOptions.find(o => o.value === slotProps.value)?.icon" class="mr-2"></i>
-                {{ filterOptions.find(o => o.value === slotProps.value)?.label }}
-              </div>
-              <span v-else>
-                {{ slotProps.placeholder }}
-              </span>
-            </template>
-            <template #option="slotProps">
-              <div class="flex align-items-center">
-                <i :class="slotProps.option.icon" class="mr-2" :style="{ color: slotProps.option.value === 'correct' ? '#22c55e' : slotProps.option.value === 'wrong' ? '#ef4444' : 'var(--primary-500)' }"></i>
-                <div>{{ slotProps.option.label }}</div>
-              </div>
-            </template>
-          </Dropdown>
         </div>
       </div>
 
@@ -148,15 +107,13 @@ onMounted(async () => {
           <i class="pi pi-search" style="font-size: 2rem; color: var(--text-secondary)"></i>
         </div>
         <h3>No questions found</h3>
-        <p>Try adjusting your search or filters</p>
-        <Button label="Clear Filters" text @click="() => { search = ''; filter_stats = 'none'; doSearch() }" />
+        <p>Try adjusting your search</p>
+        <Button label="Clear Search" text @click="() => { search = ''; doSearch() }" />
       </div>
 
       <!-- Questions Grid -->
       <div v-else class="questions-grid">
         <div v-for="q in list" :key="q.id" class="question-card">
-          <div class="card-status-stripe" :class="q.correct_count > q.wrong_count ? 'status-green' : 'status-red'"></div>
-          
           <div class="card-content">
             <div class="card-header">
               <span class="id-badge">#{{ q.id }}</span>
@@ -178,16 +135,6 @@ onMounted(async () => {
                 <span class="label">Answer:</span>
                 <span class="value">{{ q.answer }}</span>
               </div>
-              
-              <div class="stats-badges">
-                <Tag :value="q.correct_count || 0" severity="success" icon="pi pi-check" rounded></Tag>
-                <Tag :value="q.wrong_count || 0" severity="danger" icon="pi pi-times" rounded></Tag>
-              </div>
-            </div>
-            
-            <div class="last-attempt" v-if="q.last_attempted">
-              <i class="pi pi-clock"></i>
-              <span>{{ new Date(q.last_attempted).toLocaleDateString() }}</span>
             </div>
           </div>
         </div>
@@ -261,15 +208,6 @@ onMounted(async () => {
   border-color: var(--primary-500);
 }
 
-.filter-container {
-  min-width: 200px;
-}
-
-.filter-dropdown {
-  width: 100%;
-  border-radius: 50px;
-}
-
 /* Grid Layout */
 .questions-grid {
   display: grid;
@@ -295,14 +233,6 @@ onMounted(async () => {
   transform: translateY(-4px);
   box-shadow: var(--shadow-md);
 }
-
-.card-status-stripe {
-  height: 4px;
-  width: 100%;
-}
-
-.status-green { background: #22c55e; }
-.status-red { background: #ef4444; }
 
 .card-content {
   padding: 1.25rem;
@@ -411,20 +341,6 @@ onMounted(async () => {
   color: var(--primary-600);
 }
 
-.stats-badges {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.last-attempt {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  margin-top: 0.5rem;
-}
-
 /* Empty State */
 .empty-state {
   text-align: center;
@@ -468,7 +384,7 @@ onMounted(async () => {
     align-items: stretch;
   }
   
-  .search-container, .filter-container {
+  .search-container {
     width: 100%;
   }
 }

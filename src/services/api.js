@@ -6,7 +6,7 @@ function authHeaders() {
 
 async function request(path, opts = {}) {
   const headers = Object.assign({ 'Accept': 'application/json' }, opts.headers || {}, authHeaders())
-  const res = await fetch("https://ptnt-production.up.railway.app/api" + path, Object.assign({}, opts, { headers }))
+  const res = await fetch("http://127.0.0.1:8000/api" + path, Object.assign({}, opts, { headers }))
   if (res.status === 204) return null
   const text = await res.text()
   try { return JSON.parse(text) } catch { return text }
@@ -27,6 +27,9 @@ export default {
   },
   async getProfile() {
     return request('/me/profile')
+  },
+  async updatePreferences(preferences) {
+    return request('/me/preferences', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(preferences) })
   },
   async getRandomFlashcard(params = '') {
     return request('/flashcards/random' + (params ? `?${params}` : ''))
@@ -49,6 +52,13 @@ export default {
     qs.set('per_page', per_page)
     if (search) qs.set('search', search)
     if (filter_stats) qs.set('filter_stats', filter_stats)
+    return request(`/questions?${qs.toString()}`)
+  },
+  async listAllQuestions(page = 1, per_page = 10, search = '') {
+    const qs = new URLSearchParams()
+    qs.set('page', page)
+    qs.set('per_page', per_page)
+    if (search) qs.set('search', search)
     return request(`/questions?${qs.toString()}`)
   },
   async getQuestion(id) {

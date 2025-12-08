@@ -2,6 +2,7 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
 import PrimeVue from 'primevue/config'
+import ToastService from 'primevue/toastservice'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import Menubar from 'primevue/menubar'
@@ -18,6 +19,7 @@ app.use(PrimeVue, {
 		preset: Aura
 	}
 })
+app.use(ToastService)
 app.component('Button', Button)
 app.component('InputText', InputText)
 app.component('Menubar', Menubar)

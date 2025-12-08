@@ -4,11 +4,16 @@ import PageHeader from '../components/PageHeader.vue'
 import api from '../services/api'
 import Card from 'primevue/card'
 import Avatar from 'primevue/avatar'
+import InputSwitch from 'primevue/inputswitch'
+import { useToast } from 'primevue/usetoast'
 
+const toast = useToast()
 const user = ref(null)
 const stats = ref(null)
 const loading = ref(true)
 const error = ref(null)
+const showFarsi = ref(false)
+const saving = ref(false)
 
 onMounted(async () => {
   try {
@@ -21,6 +26,7 @@ onMounted(async () => {
     }
     
     user.value = response.user
+    showFarsi.value = response.user.show_farsi || false
     stats.value = response.stats || { questions: [], translations: [] }
   } catch (e) {
     error.value = 'Failed to load profile'
@@ -29,6 +35,34 @@ onMounted(async () => {
     loading.value = false
   }
 })
+
+async function toggleFarsi() {
+  saving.value = true
+  try {
+    const response = await api.updatePreferences({ show_farsi: showFarsi.value })
+    if (response && response.user) {
+      user.value = response.user
+      toast.add({ 
+        severity: 'success', 
+        summary: 'Preferences Updated', 
+        detail: `Farsi text ${showFarsi.value ? 'enabled' : 'disabled'}`, 
+        life: 3000 
+      })
+    }
+  } catch (e) {
+    console.error('Failed to update preferences:', e)
+    // Revert the toggle on error
+    showFarsi.value = !showFarsi.value
+    toast.add({ 
+      severity: 'error', 
+      summary: 'Update Failed', 
+      detail: 'Could not save your preference', 
+      life: 3000 
+    })
+  } finally {
+    saving.value = false
+  }
+}
 </script>
 
 <template>
@@ -49,6 +83,22 @@ onMounted(async () => {
             </div>
           </template>
           <template #content>
+            <div class="preferences-section">
+              <h3>Preferences</h3>
+              <div class="preference-item">
+                <div class="preference-info">
+                  <label for="farsi-toggle" class="preference-label">Show Farsi Text</label>
+                  <p class="preference-description">Display Farsi translations alongside Italian text in questions</p>
+                </div>
+                <InputSwitch 
+                  id="farsi-toggle"
+                  v-model="showFarsi" 
+                  @change="toggleFarsi"
+                  :disabled="saving"
+                />
+              </div>
+            </div>
+
             <div class="stats-section">
               <h3>Your Progress</h3>
               <div class="stats-grid">
@@ -93,6 +143,46 @@ onMounted(async () => {
 
 .email {
   margin: 0.5rem 0 0;
+  color: var(--text-color-secondary);
+}
+
+.preferences-section {
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--surface-200);
+  margin-bottom: 2rem;
+}
+
+.preferences-section h3 {
+  margin: 0 0 1.5rem 0;
+  font-size: 1.25rem;
+  color: var(--text-color);
+}
+
+.preference-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: var(--surface-50);
+  border-radius: var(--border-radius);
+  gap: 1rem;
+}
+
+.preference-info {
+  flex: 1;
+}
+
+.preference-label {
+  display: block;
+  font-weight: 600;
+  color: var(--text-color);
+  margin-bottom: 0.25rem;
+  cursor: pointer;
+}
+
+.preference-description {
+  margin: 0;
+  font-size: 0.875rem;
   color: var(--text-color-secondary);
 }
 

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, nextTick, computed, onUnmounted } from 'vue'
+import { ref, nextTick, computed, onUnmounted, onMounted } from 'vue'
 import api from '../services/api'
 import Card from 'primevue/card'
 import Button from 'primevue/button'
@@ -11,6 +11,8 @@ const loading = ref(false)
 const result = ref(null)
 const current = ref(0)
 const resultContainer = ref(null)
+const user = ref(null)
+const showFarsi = ref(false)
 
 // Timer logic
 const timer = ref(20 * 60) // 20 minutes in seconds
@@ -43,6 +45,18 @@ function startTimer() {
 function stopTimer() {
   clearInterval(timerInterval.value)
 }
+
+onMounted(async () => {
+  try {
+    const profile = await api.getProfile()
+    if (profile && profile.user) {
+      user.value = profile.user
+      showFarsi.value = profile.user.show_farsi || false
+    }
+  } catch (e) {
+    console.error('Failed to load user profile:', e)
+  }
+})
 
 onUnmounted(() => {
   stopTimer()
@@ -131,7 +145,10 @@ async function submit() {
               </div>
               
               <div class="question-text-wrapper">
-                <h3 class="question-text">{{ questions[current].text }}</h3>
+                <div>
+                  <h3 class="question-text">{{ questions[current].text }}</h3>
+                  <p v-if="showFarsi && questions[current].text_fa" class="question-text-farsi">{{ questions[current].text_fa }}</p>
+                </div>
               </div>
             </div>
 
@@ -389,6 +406,15 @@ async function submit() {
   color: var(--text-main);
   margin: 0;
   line-height: 1.4;
+}
+
+.question-text-farsi {
+  font-size: 1.125rem;
+  color: var(--text-secondary);
+  margin: 0.75rem 0 0;
+  line-height: 1.5;
+  font-style: italic;
+  opacity: 0.85;
 }
 
 .question-image {
