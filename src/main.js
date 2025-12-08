@@ -24,3 +24,7 @@ app.component('Menubar', Menubar)
 app.component('Dropdown', Dropdown)
 app.component('Paginator', Paginator)
 app.mount('#app')
+
+import { registerSW } from 'virtual:pwa-register'
+
+registerSW({ immediate: true })
