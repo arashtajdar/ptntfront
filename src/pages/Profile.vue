@@ -5,6 +5,7 @@ import api from '../services/api'
 import Card from 'primevue/card'
 import Avatar from 'primevue/avatar'
 import InputSwitch from 'primevue/inputswitch'
+import Button from 'primevue/button'
 import { useToast } from 'primevue/usetoast'
 
 const toast = useToast()
@@ -63,6 +64,43 @@ async function toggleFarsi() {
     saving.value = false
   }
 }
+
+const processingPayment = ref(false)
+
+async function handlePremiumUpgrade() {
+  processingPayment.value = true
+  try {
+    const response = await api.createCheckoutSession()
+    if (response && response.url) {
+      // Redirect to Stripe checkout
+      window.location.href = response.url
+    } else {
+      throw new Error('Invalid checkout session response')
+    }
+  } catch (e) {
+    console.error('Failed to create checkout session:', e)
+    toast.add({ 
+      severity: 'error', 
+      summary: 'Payment Error', 
+      detail: 'Could not initiate payment. Please try again.', 
+      life: 3000 
+    })
+    processingPayment.value = false
+  }
+}
+
+function isPremiumActive() {
+  if (!user.value?.premium || !user.value?.premium_until) return false
+  const premiumUntil = new Date(user.value.premium_until)
+  return premiumUntil > new Date()
+}
+
+function formatDate(dateString) {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+}
+
 </script>
 
 <template>
@@ -83,6 +121,36 @@ async function toggleFarsi() {
             </div>
           </template>
           <template #content>
+            <div class="premium-section">
+              <h3>Premium Subscription</h3>
+              <div class="premium-card" :class="{ 'premium-active': isPremiumActive() }">
+                <div class="premium-info">
+                  <div v-if="isPremiumActive()" class="premium-status">
+                    <i class="pi pi-check-circle"></i>
+                    <div>
+                      <p class="premium-title">Premium Active</p>
+                      <p class="premium-expiry">Valid until {{ formatDate(user.premium_until) }}</p>
+                    </div>
+                  </div>
+                  <div v-else class="premium-status">
+                    <i class="pi pi-star"></i>
+                    <div>
+                      <p class="premium-title">Upgrade to Premium</p>
+                      <p class="premium-description">Get access to exclusive features</p>
+                    </div>
+                  </div>
+                </div>
+                <Button 
+                  :label="isPremiumActive() ? 'Extend Premium' : 'Upgrade to Premium'"
+                  icon="pi pi-shopping-cart"
+                  @click="handlePremiumUpgrade"
+                  :loading="processingPayment"
+                  :disabled="processingPayment"
+                  class="premium-button"
+                />
+              </div>
+            </div>
+
             <div class="preferences-section">
               <h3>Preferences</h3>
               <div class="preference-item">
@@ -144,6 +212,80 @@ async function toggleFarsi() {
 .email {
   margin: 0.5rem 0 0;
   color: var(--text-color-secondary);
+}
+
+.premium-section {
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--surface-200);
+  margin-bottom: 2rem;
+}
+
+.premium-section h3 {
+  margin: 0 0 1.5rem 0;
+  font-size: 1.25rem;
+  color: var(--text-color);
+}
+
+.premium-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  background: var(--surface-50);
+  border-radius: var(--border-radius);
+  border: 2px solid var(--surface-200);
+  gap: 1rem;
+  transition: all 0.3s ease;
+}
+
+.premium-card.premium-active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: #667eea;
+}
+
+.premium-info {
+  flex: 1;
+}
+
+.premium-status {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.premium-status i {
+  font-size: 2rem;
+  color: var(--primary-500);
+}
+
+.premium-card.premium-active .premium-status i {
+  color: white;
+}
+
+.premium-title {
+  margin: 0;
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: var(--text-color);
+}
+
+.premium-card.premium-active .premium-title {
+  color: white;
+}
+
+.premium-description,
+.premium-expiry {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  color: var(--text-color-secondary);
+}
+
+.premium-card.premium-active .premium-expiry {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.premium-button {
+  white-space: nowrap;
 }
 
 .preferences-section {
