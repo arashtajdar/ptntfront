@@ -311,11 +311,11 @@ onMounted(async () => {
 
 .question-text-farsi {
   margin: 0.5rem 0 0;
-  font-size: 0.875rem;
+  font-size: 1rem;
   line-height: 1.5;
   color: var(--text-secondary);
   font-style: italic;
-  opacity: 0.85;
+  opacity: 1;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   line-clamp: 2;

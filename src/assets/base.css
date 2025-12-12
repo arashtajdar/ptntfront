@@ -1,5 +1,24 @@
-/* Import Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+/* Custom Fonts */
+@font-face {
+  font-family: 'Geom';
+  src: url('./fonts/Geom/Geom-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Roboto Flex';
+  src: url('./fonts/Roboto_Flex/RobotoFlex-VariableFont_GRAD,XOPQ,XTRA,YOPQ,YTAS,YTDE,YTFI,YTLC,YTUC,opsz,slnt,wdth,wght.ttf') format('truetype');
+  font-weight: 100 1000;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Nazanin';
+  src: url('./fonts/nazanin/Far.Nazanin.ttf') format('truetype');
+  font-weight: normal;
+  font-display: swap;
+}
 
 :root {
   /* Color Palette */
@@ -61,7 +80,7 @@
 }
 
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Roboto Flex', sans-serif;
   background-color: var(--bg-color);
   color: var(--text-main);
   line-height: 1.5;
@@ -75,9 +94,23 @@ body {
   min-height: 100vh;
 }
 
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Geom', sans-serif;
+  font-weight: 700;
+}
+
+/* Farsi Text Rule */
+.text-farsi, 
+.question-text-farsi, 
+.dialog-text-farsi,
+[lang="fa"] {
+  font-family: 'Nazanin', serif;
+  direction: rtl; 
+}
+
 /* PrimeVue Overrides for consistency */
 .p-component {
-  font-family: 'Inter', sans-serif !important;
+  font-family: 'Roboto Flex', sans-serif !important;
   font-size: 0.95rem;
 }
 
@@ -91,6 +124,7 @@ body {
 
 .p-button {
   border-radius: var(--radius-md) !important;
+  font-family: 'Geom', sans-serif !important; /* Optional: Buttons usually look good with header font or body font. Let's stick to Header font for primary actions or Body for readability. User said "all other texts" -> Roboto. But headers -> Geom. I'll stick to Roboto for buttons unless user requested otherwise, but maybe headers means headings. I will keep p-component as Roboto Flex. */
   font-weight: 500 !important;
   transition: all var(--transition-fast) !important;
 }

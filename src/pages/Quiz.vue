@@ -409,7 +409,7 @@ async function submit() {
 }
 
 .question-text-farsi {
-  font-size: 1.125rem;
+  font-size: 1.2rem;
   color: var(--text-secondary);
   margin: 0.75rem 0 0;
   line-height: 1.5;

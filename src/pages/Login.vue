@@ -10,6 +10,7 @@ const router = useRouter()
 const email = ref('')
 const password = ref('')
 const loading = ref(false)
+const error = ref('')
 
 async function submit() {
   error.value = ''
