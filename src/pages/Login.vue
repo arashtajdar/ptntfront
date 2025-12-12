@@ -9,10 +9,11 @@ import Button from 'primevue/button'
 const router = useRouter()
 const email = ref('')
 const password = ref('')
-const error = ref('')
+const loading = ref(false)
 
 async function submit() {
   error.value = ''
+  loading.value = true
   try {
     const res = await api.login({ email: email.value, password: password.value })
     if (res && (res.token || (res.data && res.data.token))) {
@@ -24,6 +25,8 @@ async function submit() {
     }
   } catch (e) {
     error.value = String(e)
+  } finally {
+    loading.value = false
   }
 }
 </script>
@@ -60,7 +63,7 @@ async function submit() {
           </span>
         </div>
         
-        <Button label="Sign In" icon="pi pi-sign-in" @click="submit" class="w-full mt-4" size="large" />
+        <Button label="Sign In" icon="pi pi-sign-in" @click="submit" class="w-full mt-4" size="large" :loading="loading" />
         
         <div class="auth-footer">
           <span>Don't have an account?</span>

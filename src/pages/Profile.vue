@@ -236,16 +236,34 @@ function formatDate(dateString) {
               </div>
               <div class="stats-grid">
                 <div class="stat-item">
-                  <span class="stat-label">Unique Questions Answered</span>
-                  <span class="stat-value">{{ stats?.overview?.questions_answered_unique || stats?.questions?.length || 0 }}</span>
+                  <div class="stat-header-row">
+                     <span class="stat-label">Unique Questions Answered</span>
+                     <span class="stat-value-sm">{{ stats?.overview?.questions_answered_unique || 0 }} / {{ stats?.overview?.total_questions || 0 }}</span>
+                  </div>
+                  <div class="stat-main-value">{{ stats?.overview?.questions_answered_unique || 0 }}</div>
+                  <div class="progress-container">
+                    <div class="progress-bar" :style="{ width: (stats?.overview?.questions_correct_percent || 0) + '%' }"></div>
+                  </div>
+                  <span class="stat-subtext">{{ stats?.overview?.questions_correct_percent || 0 }}% of total questions</span>
                 </div>
+
                 <div class="stat-item">
-                  <span class="stat-label">Questions Correctness</span>
-                  <span class="stat-value">{{ stats?.overview?.questions_correct_percent || 0 }}%</span>
+                  <div class="stat-header-row">
+                    <span class="stat-label">Flashcards Mastery</span>
+                    <span class="stat-value-sm">{{ stats?.overview?.flashcards_stats?.mastered || 0 }} Mastered</span>
+                  </div>
+                  <div class="stat-main-value">{{ stats?.overview?.flashcards_progress_percent || 0 }}%</div>
+                  <div class="progress-container">
+                    <div class="progress-bar color-purple" :style="{ width: (stats?.overview?.flashcards_progress_percent || 0) + '%' }"></div>
+                  </div>
+                   <span class="stat-subtext">Based on 3-tier Leitner system</span>
                 </div>
-                <div class="stat-item">
-                  <span class="stat-label">Flashcards Mastery</span>
-                  <span class="stat-value">{{ stats?.overview?.flashcards_progress_percent || 0 }}%</span>
+
+                <!-- Example of another stat if needed, kept simple for now based on available data -->
+                 <div class="stat-item">
+                  <span class="stat-label">Total Interactions</span>
+                   <div class="stat-main-value">{{ stats?.questions?.length || 0 }}</div>
+                   <span class="stat-subtext">Total questions attempted</span>
                 </div>
               </div>
             </div>
@@ -415,21 +433,66 @@ function formatDate(dateString) {
   display: flex;
   flex-direction: column;
   padding: 1.5rem;
-  background: var(--surface-ground);
+  background: var(--surface-card);
   border-radius: var(--border-radius);
-  text-align: center;
+  border: 1px solid var(--surface-border);
+  box-shadow: var(--card-shadow);
+  transition: transform 0.2s;
+}
+
+.stat-item:hover {
+  transform: translateY(-2px);
+}
+
+.stat-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
 }
 
 .stat-label {
   color: var(--text-color-secondary);
   font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.stat-value-sm {
+  font-size: 0.85rem;
+  color: var(--text-color-secondary);
+}
+
+.stat-main-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+  line-height: 1;
+}
+
+.progress-container {
+  height: 8px;
+  background-color: var(--surface-200);
+  border-radius: 4px;
+  overflow: hidden;
   margin-bottom: 0.5rem;
 }
 
-.stat-value {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: var(--primary-color);
+.progress-bar {
+  height: 100%;
+  background-color: var(--primary-color);
+  border-radius: 4px;
+  transition: width 1s ease-in-out;
+}
+
+.progress-bar.color-purple {
+  background-color: #9c27b0;
+}
+
+.stat-subtext {
+  font-size: 0.8rem;
+  color: var(--text-color-secondary);
+  opacity: 0.8;
 }
 
 .stats-header {
