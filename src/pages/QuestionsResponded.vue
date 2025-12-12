@@ -7,6 +7,7 @@ import Dropdown from 'primevue/dropdown'
 import Paginator from 'primevue/paginator'
 import Skeleton from 'primevue/skeleton'
 import Tag from 'primevue/tag'
+import Dialog from 'primevue/dialog'
 import PageHeader from '../components/PageHeader.vue'
 
 const list = ref([])
@@ -19,6 +20,8 @@ const search = ref('')
 const filter_stats = ref('correct')
 const user = ref(null)
 const showFarsi = ref(false)
+const displayDialog = ref(false)
+const selectedQuestion = ref(null)
 const filterOptions = [
   { label: 'Correctly Answered', value: 'correct', icon: 'pi pi-check-circle', class: 'text-green-500' },
   { label: 'Wrongly Answered', value: 'wrong', icon: 'pi pi-times-circle', class: 'text-red-500' },
@@ -62,6 +65,11 @@ function setFilter(val) {
   filter_stats.value = val
   page.value = 1
   load()
+}
+
+function openQuestion(q) {
+  selectedQuestion.value = q
+  displayDialog.value = true
 }
 
 function onPageChange(e) {
@@ -154,7 +162,7 @@ onMounted(async () => {
 
       <!-- Questions Grid -->
       <div v-else class="questions-grid">
-        <div v-for="q in list" :key="q.id" class="question-card">
+        <div v-for="q in list" :key="q.id" class="question-card" @click="openQuestion(q)">
           <div class="card-status-stripe" :class="q.correct_count > q.wrong_count ? 'status-green' : 'status-red'"></div>
           
           <div class="card-content">
@@ -204,6 +212,44 @@ onMounted(async () => {
         />
       </div>
     </div>
+
+    <Dialog v-model:visible="displayDialog" modal header="Question Details" :style="{ width: '50vw' }" :breakpoints="{ '960px': '75vw', '641px': '90vw' }">
+      <div v-if="selectedQuestion" class="dialog-content">
+        <div class="dialog-status-stripe" :class="selectedQuestion.correct_count > selectedQuestion.wrong_count ? 'status-green' : 'status-red'"></div>
+        
+        <div class="dialog-section">
+          <span class="dialog-label">Question:</span>
+          <p class="dialog-text">{{ selectedQuestion.text }}</p>
+          <p v-if="showFarsi && selectedQuestion.text_fa" class="dialog-text-farsi">{{ selectedQuestion.text_fa }}</p>
+        </div>
+
+        <div class="dialog-section" v-if="selectedQuestion.image">
+           <div class="dialog-image-container">
+             <img :src="'/images/'+selectedQuestion.image" alt="Question Image" />
+           </div>
+        </div>
+
+        <div class="dialog-section">
+          <span class="dialog-label">Answer:</span>
+          <p class="dialog-value">{{ selectedQuestion.answer }}</p>
+        </div>
+
+        <div class="dialog-section">
+          <span class="dialog-label">Stats:</span>
+          <div class="dialog-stats">
+              <Tag :value="selectedQuestion.correct_count || 0" severity="success" icon="pi pi-check" rounded></Tag>
+              <Tag :value="selectedQuestion.wrong_count || 0" severity="danger" icon="pi pi-times" rounded></Tag>
+          </div>
+           <div class="last-attempt" v-if="selectedQuestion.last_attempted">
+              <i class="pi pi-clock"></i>
+              <span>Last Attempt: {{ new Date(selectedQuestion.last_attempted).toLocaleDateString() }}</span>
+            </div>
+        </div>
+      </div>
+      <template #footer>
+        <Button label="Close" icon="pi pi-times" @click="displayDialog = false" text />
+      </template>
+    </Dialog>
   </div>
 </template>
 
@@ -294,6 +340,8 @@ onMounted(async () => {
 .question-card:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-md);
+  border-color: var(--primary-200);
+  cursor: pointer;
 }
 
 .card-status-stripe {
@@ -472,4 +520,74 @@ onMounted(async () => {
     width: 100%;
   }
 }
+
+.dialog-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.dialog-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dialog-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.dialog-text {
+  font-size: 1.1rem;
+  color: var(--text-main);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.dialog-text-farsi {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  margin: 0;
+}
+
+.dialog-value {
+  font-size: 1.25rem;
+  color: var(--primary-600);
+  font-weight: 700;
+  margin: 0;
+}
+
+.dialog-image-container {
+  width: 100%;
+  max-height: 400px;
+  background: var(--surface-50);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--surface-100);
+}
+
+.dialog-image-container img {
+  max-width: 100%;
+  max-height: 400px;
+  object-fit: contain;
+}
+
+.dialog-status-stripe {
+    height: 4px;
+    width: 100%;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+}
+
+.dialog-stats {
+    display: flex;
+    gap: 0.5rem;
+}
+
 </style>

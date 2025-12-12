@@ -5,6 +5,7 @@ import InputText from 'primevue/inputtext'
 import Button from 'primevue/button'
 import Paginator from 'primevue/paginator'
 import Skeleton from 'primevue/skeleton'
+import Dialog from 'primevue/dialog'
 import PageHeader from '../components/PageHeader.vue'
 
 const list = ref([])
@@ -16,6 +17,13 @@ const last_page = ref(1)
 const search = ref('')
 const user = ref(null)
 const showFarsi = ref(false)
+const displayDialog = ref(false)
+const selectedQuestion = ref(null)
+
+function openQuestion(q) {
+  selectedQuestion.value = q
+  displayDialog.value = true
+}
 
 async function loadProfile() {
   try {
@@ -113,7 +121,7 @@ onMounted(async () => {
 
       <!-- Questions Grid -->
       <div v-else class="questions-grid">
-        <div v-for="q in list" :key="q.id" class="question-card">
+        <div v-for="q in list" :key="q.id" class="question-card" @click="openQuestion(q)">
           <div class="card-content">
             <div class="card-header">
               <span class="id-badge">#{{ q.id }}</span>
@@ -150,7 +158,32 @@ onMounted(async () => {
           template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink"
         />
       </div>
+      </div>
     </div>
+
+    <Dialog v-model:visible="displayDialog" modal header="Question Details" :style="{ width: '50vw' }" :breakpoints="{ '960px': '75vw', '641px': '90vw' }">
+      <div v-if="selectedQuestion" class="dialog-content">
+        <div class="dialog-section">
+          <span class="dialog-label">Question:</span>
+          <p class="dialog-text">{{ selectedQuestion.text }}</p>
+          <p v-if="showFarsi && selectedQuestion.text_fa" class="dialog-text-farsi">{{ selectedQuestion.text_fa }}</p>
+        </div>
+
+        <div class="dialog-section" v-if="selectedQuestion.image">
+           <div class="dialog-image-container">
+             <img :src="'/images/'+selectedQuestion.image" alt="Question Image" />
+           </div>
+        </div>
+
+        <div class="dialog-section">
+          <span class="dialog-label">Answer:</span>
+          <p class="dialog-value">{{ selectedQuestion.answer }}</p>
+        </div>
+      </div>
+      <template #footer>
+        <Button label="Close" icon="pi pi-times" @click="displayDialog = false" text />
+      </template>
+    </Dialog>
   </div>
 </template>
 
@@ -232,6 +265,8 @@ onMounted(async () => {
 .question-card:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-md);
+  border-color: var(--primary-200);
+  cursor: pointer;
 }
 
 .card-content {
@@ -387,5 +422,62 @@ onMounted(async () => {
   .search-container {
     width: 100%;
   }
+}
+
+.dialog-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.dialog-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dialog-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.dialog-text {
+  font-size: 1.1rem;
+  color: var(--text-main);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.dialog-text-farsi {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  margin: 0;
+}
+
+.dialog-value {
+  font-size: 1.25rem;
+  color: var(--primary-600);
+  font-weight: 700;
+  margin: 0;
+}
+
+.dialog-image-container {
+  width: 100%;
+  max-height: 400px;
+  background: var(--surface-50);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--surface-100);
+}
+
+.dialog-image-container img {
+  max-width: 100%;
+  max-height: 400px;
+  object-fit: contain;
 }
 </style>
