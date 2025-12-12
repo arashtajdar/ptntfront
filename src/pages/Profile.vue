@@ -16,26 +16,85 @@ const error = ref(null)
 const showFarsi = ref(false)
 const saving = ref(false)
 
+const lastUpdated = ref(null)
+const CACHE_KEY = 'profile_stats_cache'
+const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
+
 onMounted(async () => {
+  await loadProfile()
+})
+
+async function loadProfile(forceRefresh = false) {
+  loading.value = true
+  if (forceRefresh) {
+    // keeping loading true is fine
+  }
+  
   try {
+    // Try to load from cache first if not forcing refresh
+    if (!forceRefresh) {
+      const cached = localStorage.getItem(CACHE_KEY)
+      if (cached) {
+        try {
+          const data = JSON.parse(cached)
+          const age = Date.now() - data.timestamp
+          if (age < CACHE_DURATION) {
+            applyProfileData(data.payload)
+            lastUpdated.value = new Date(data.timestamp).toLocaleString()
+            loading.value = false
+            return
+          }
+        } catch (e) {
+          console.error('Cache parse error', e)
+          localStorage.removeItem(CACHE_KEY)
+        }
+      }
+    }
+
     console.log('Fetching profile...')
     const response = await api.getProfile()
-    console.log('Profile response:', response)
     
     if (!response || !response.user) {
       throw new Error('Invalid response format')
     }
     
-    user.value = response.user
-    showFarsi.value = response.user.show_farsi || false
-    stats.value = response.stats || { questions: [], translations: [] }
+    // Cache the fresh response
+    localStorage.setItem(CACHE_KEY, JSON.stringify({
+      timestamp: Date.now(),
+      payload: response
+    }))
+    
+    applyProfileData(response)
+    lastUpdated.value = new Date().toLocaleString()
+
   } catch (e) {
     error.value = 'Failed to load profile'
     console.error(e)
   } finally {
     loading.value = false
   }
-})
+}
+
+function applyProfileData(response) {
+  user.value = response.user
+  showFarsi.value = response.user.show_farsi || false
+  stats.value = response.stats || { questions: [], translations: [] }
+  if (response.overview) {
+    // Merge overview into stats for easier access or keep separate. 
+    // Putting it in stats object for now as planned.
+    stats.value.overview = response.overview
+  }
+}
+
+async function refreshStats() {
+  await loadProfile(true)
+  toast.add({ 
+    severity: 'success', 
+    summary: 'Updated', 
+    detail: 'Stats refreshed successfully', 
+    life: 2000 
+  })
+}
 
 async function toggleFarsi() {
   saving.value = true
@@ -168,13 +227,26 @@ function formatDate(dateString) {
             </div>
 
             <div class="stats-section">
-              <h3>Your Progress</h3>
+              <div class="stats-header">
+                <h3>Your Progress</h3>
+                <div class="stats-actions">
+                  <span v-if="lastUpdated" class="last-updated">Updated: {{ lastUpdated }}</span>
+                  <Button icon="pi pi-refresh" text rounded @click="refreshStats" :loading="loading" title="Refresh Stats" />
+                </div>
+              </div>
               <div class="stats-grid">
                 <div class="stat-item">
-                  <span class="stat-label">Questions Answered</span>
-                  <span class="stat-value">{{ stats?.questions?.length || 0 }}</span>
+                  <span class="stat-label">Unique Questions Answered</span>
+                  <span class="stat-value">{{ stats?.overview?.questions_answered_unique || stats?.questions?.length || 0 }}</span>
                 </div>
-                <!-- Add more stats as needed based on actual data structure -->
+                <div class="stat-item">
+                  <span class="stat-label">Questions Correctness</span>
+                  <span class="stat-value">{{ stats?.overview?.questions_correct_percent || 0 }}%</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Flashcards Mastery</span>
+                  <span class="stat-value">{{ stats?.overview?.flashcards_progress_percent || 0 }}%</span>
+                </div>
               </div>
             </div>
           </template>
@@ -358,5 +430,27 @@ function formatDate(dateString) {
   font-size: 1.5rem;
   font-weight: bold;
   color: var(--primary-color);
+}
+
+.stats-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.stats-header h3 {
+  margin: 0;
+}
+
+.stats-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.last-updated {
+  font-size: 0.8rem;
+  color: var(--text-color-secondary);
 }
 </style>
