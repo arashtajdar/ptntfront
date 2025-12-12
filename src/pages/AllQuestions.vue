@@ -184,7 +184,7 @@ onMounted(async () => {
         <Button label="Close" icon="pi pi-times" @click="displayDialog = false" text />
       </template>
     </Dialog>
-  </div>
+  
 </template>
 
 <style scoped>
