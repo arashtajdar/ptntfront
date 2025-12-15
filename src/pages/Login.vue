@@ -1,7 +1,7 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import api from '../services/api'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import Card from 'primevue/card'
 import InputText from 'primevue/inputtext'
 import Button from 'primevue/button'
@@ -45,7 +45,12 @@ async function submit() {
       localStorage.setItem('auth_token', token)
       router.push('/flashcard')
     } else {
-      error.value = (res && res.message) ? res.message : 'Login failed. Check credentials.'
+      if (res && res.message === 'Your email address is not verified.') {
+        error.value = res.message
+        showResend.value = true
+      } else {
+        error.value = (res && res.message) ? res.message : 'Login failed. Check credentials.'
+      }
     }
   } catch (e) {
     if (e.response && e.response.data && e.response.data.message) {
