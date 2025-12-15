@@ -12,8 +12,31 @@ const password = ref('')
 const loading = ref(false)
 const error = ref('')
 
+const route = useRoute()
+const successMessage = ref('')
+const showResend = ref(false)
+const resendLoading = ref(false)
+
+async function resendEmail() {
+  resendLoading.value = true
+  try {
+    const res = await api.resendVerification(email.value)
+    if (res && res.message) {
+      successMessage.value = res.message
+      error.value = ''
+      showResend.value = false
+    }
+  } catch (e) {
+    error.value = 'Failed to resend email. ' + String(e)
+  } finally {
+    resendLoading.value = false
+  }
+}
+
 async function submit() {
   error.value = ''
+  successMessage.value = ''
+  showResend.value = false
   loading.value = true
   try {
     const res = await api.login({ email: email.value, password: password.value })
@@ -27,6 +50,9 @@ async function submit() {
   } catch (e) {
     if (e.response && e.response.data && e.response.data.message) {
       error.value = e.response.data.message
+      if (e.response.status === 403 && e.response.data.message === 'Your email address is not verified.') {
+        showResend.value = true
+      }
     } else {
       error.value = 'Login failed. ' + String(e)
     }
@@ -34,12 +60,6 @@ async function submit() {
     loading.value = false
   }
 }
-
-import { onMounted } from 'vue'
-import { useRoute } from 'vue-router'
-
-const route = useRoute()
-const successMessage = ref('')
 
 onMounted(() => {
   if (route.query.verified === '1') {
@@ -66,7 +86,17 @@ onMounted(() => {
 
         <div v-if="error" class="error-message">
           <i class="pi pi-exclamation-circle"></i>
-          <span>{{ error }}</span>
+          <div class="flex flex-col w-full">
+            <span>{{ error }}</span>
+            <Button v-if="showResend" 
+              label="Resend Verification Email" 
+              link 
+              size="small" 
+              class="p-0 mt-1 resend-btn" 
+              @click="resendEmail" 
+              :loading="resendLoading" 
+            />
+          </div>
         </div>
         
         <div class="form-group">
@@ -154,10 +184,31 @@ onMounted(() => {
   border-radius: var(--radius-md);
   margin-bottom: 1.5rem;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.5rem;
   font-size: 0.9rem;
   border: 1px solid #fee2e2;
+}
+
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.mt-1 {
+  margin-top: 0.25rem;
+}
+
+.resend-btn {
+  text-align: left;
+  color: #b91c1c !important;
+  font-weight: 600;
+}
+.resend-btn:hover {
+  text-decoration: underline;
 }
 
 .success-message {

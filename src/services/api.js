@@ -19,6 +19,9 @@ export default {
   async login(payload) {
     return request('/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
   },
+  async resendVerification(email) {
+    return request('/email/resend', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) })
+  },
   async getUser() {
     return request('/user')
   },
