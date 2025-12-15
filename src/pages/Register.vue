@@ -25,10 +25,14 @@ async function submit() {
         router.push('/login')
       }, 5000)
     } else {
-      error.value = 'Registration failed.'
+      error.value = (res && res.message) ? res.message : 'Registration failed.'
     }
   } catch (e) {
-    error.value = String(e)
+    if (e.response && e.response.data && e.response.data.message) {
+      error.value = e.response.data.message
+    } else {
+      error.value = 'Registration failed. ' + String(e)
+    }
   }
 }
 </script>

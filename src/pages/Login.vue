@@ -22,13 +22,13 @@ async function submit() {
       localStorage.setItem('auth_token', token)
       router.push('/flashcard')
     } else {
-      error.value = 'Login failed. Check credentials.'
+      error.value = (res && res.message) ? res.message : 'Login failed. Check credentials.'
     }
   } catch (e) {
-    if (e.response && e.response.status === 403 && e.response.data.message === 'Your email address is not verified.') {
-      error.value = 'Please verify your email address before logging in.'
+    if (e.response && e.response.data && e.response.data.message) {
+      error.value = e.response.data.message
     } else {
-      error.value = String(e)
+      error.value = 'Login failed. ' + String(e)
     }
   } finally {
     loading.value = false
