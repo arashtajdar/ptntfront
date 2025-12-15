@@ -25,11 +25,27 @@ async function submit() {
       error.value = 'Login failed. Check credentials.'
     }
   } catch (e) {
-    error.value = String(e)
+    if (e.response && e.response.status === 403 && e.response.data.message === 'Your email address is not verified.') {
+      error.value = 'Please verify your email address before logging in.'
+    } else {
+      error.value = String(e)
+    }
   } finally {
     loading.value = false
   }
 }
+
+import { onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
+const successMessage = ref('')
+
+onMounted(() => {
+  if (route.query.verified === '1') {
+    successMessage.value = 'Email verified successfully! You can now log in.'
+  }
+})
 </script>
 
 <template>
@@ -43,6 +59,11 @@ async function submit() {
         <p class="auth-subtitle">Sign in to continue your learning journey</p>
       </template>
       <template #content>
+        <div v-if="successMessage" class="success-message">
+          <i class="pi pi-check-circle"></i>
+          <span>{{ successMessage }}</span>
+        </div>
+
         <div v-if="error" class="error-message">
           <i class="pi pi-exclamation-circle"></i>
           <span>{{ error }}</span>
@@ -137,6 +158,19 @@ async function submit() {
   gap: 0.5rem;
   font-size: 0.9rem;
   border: 1px solid #fee2e2;
+}
+
+.success-message {
+  background: #f0fdf4;
+  color: #15803d;
+  padding: 0.75rem;
+  border-radius: var(--radius-md);
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  border: 1px solid #dcfce7;
 }
 
 .auth-footer {

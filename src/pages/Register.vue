@@ -12,19 +12,24 @@ const email = ref('')
 const password = ref('')
 const password_confirmation = ref('')
 const error = ref('')
+const success = ref('')
 
 async function submit() {
   error.value = ''
+  success.value = ''
   try {
     const res = await api.register({ name: name.value, email: email.value, password: password.value, password_confirmation: password_confirmation.value })
-    const token = res && (res.token || (res.data && res.data.token))
-    if (token) {
-      localStorage.setItem('auth_token', token)
-      router.push('/flashcard')
+    if (res && res.status === 'success') {
+      success.value = res.message
+      setTimeout(() => {
+        router.push('/login')
+      }, 5000)
     } else {
       error.value = 'Registration failed.'
     }
-  } catch (e) { error.value = String(e) }
+  } catch (e) {
+    error.value = String(e)
+  }
 }
 </script>
 
@@ -39,6 +44,11 @@ async function submit() {
         <p class="auth-subtitle">Join us and start mastering new languages</p>
       </template>
       <template #content>
+        <div v-if="success" class="success-message">
+          <i class="pi pi-check-circle"></i>
+          <span>{{ success }}</span>
+        </div>
+
         <div v-if="error" class="error-message">
           <i class="pi pi-exclamation-circle"></i>
           <span>{{ error }}</span>
@@ -160,6 +170,19 @@ async function submit() {
   gap: 0.5rem;
   font-size: 0.9rem;
   border: 1px solid #fee2e2;
+}
+
+.success-message {
+  background: #f0fdf4;
+  color: #15803d;
+  padding: 0.75rem;
+  border-radius: var(--radius-md);
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  border: 1px solid #dcfce7;
 }
 
 .auth-footer {
