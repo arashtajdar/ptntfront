@@ -1,5 +1,5 @@
 <script setup>
-import { ref, nextTick, computed, onUnmounted, onMounted } from 'vue'
+import { ref, nextTick, computed, onUnmounted, onMounted, watch } from 'vue'
 import api from '../services/api'
 import Card from 'primevue/card'
 import Button from 'primevue/button'
@@ -13,6 +13,12 @@ const current = ref(0)
 const resultContainer = ref(null)
 const user = ref(null)
 const showFarsi = ref(false)
+const isFarsiRevealed = ref(false)
+
+// Reset reveal state when moving to next/previous question
+watch(current, () => {
+  isFarsiRevealed.value = false
+})
 
 // Timer logic
 const timer = ref(20 * 60) // 20 minutes in seconds
@@ -147,7 +153,18 @@ async function submit() {
               <div class="question-text-wrapper">
                 <div>
                   <h3 class="question-text">{{ questions[current].text }}</h3>
-                  <p v-if="showFarsi && questions[current].text_fa" class="question-text-farsi">{{ questions[current].text_fa }}</p>
+                  <div v-if="showFarsi && questions[current].text_fa" class="farsi-section">
+                    <p v-if="isFarsiRevealed" class="question-text-farsi">{{ questions[current].text_fa }}</p>
+                    <Button 
+                      v-else
+                      label="Reveal Translation" 
+                      icon="pi pi-eye" 
+                      @click="isFarsiRevealed = true"
+                      class="reveal-btn"
+                      size="small"
+                      text
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -415,6 +432,18 @@ async function submit() {
   line-height: 1.5;
   font-style: italic;
   opacity: 0.85;
+}
+
+.reveal-btn {
+  margin-top: 0.5rem;
+  padding: 0;
+  font-weight: 500;
+}
+
+.farsi-section {
+  min-height: 40px;
+  display: flex;
+  align-items: center;
 }
 
 .question-image {
