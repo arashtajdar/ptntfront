@@ -21,7 +21,24 @@ const CACHE_KEY = 'profile_stats_cache'
 const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
 
 onMounted(async () => {
-  await loadProfile()
+  const urlParams = new URLSearchParams(window.location.search)
+  if (urlParams.get('payment_success') === '1') {
+    // Clear the param from URL without refreshing page
+    const newUrl = window.location.pathname
+    window.history.replaceState({}, document.title, newUrl)
+    
+    // Force refresh profile data
+    await loadProfile(true)
+    
+    toast.add({ 
+      severity: 'success', 
+      summary: 'Payment Successful', 
+      detail: 'Your premium subscription has been updated!', 
+      life: 5000 
+    })
+  } else {
+    await loadProfile()
+  }
 })
 
 async function loadProfile(forceRefresh = false) {
