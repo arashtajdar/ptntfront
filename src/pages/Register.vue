@@ -14,9 +14,12 @@ const password_confirmation = ref('')
 const error = ref('')
 const success = ref('')
 
+const loading = ref(false)
+
 async function submit() {
   error.value = ''
   success.value = ''
+  loading.value = true
   try {
     const res = await api.register({ name: name.value, email: email.value, password: password.value, password_confirmation: password_confirmation.value })
     if (res && res.status === 'success') {
@@ -33,6 +36,8 @@ async function submit() {
     } else {
       error.value = 'Registration failed. ' + String(e)
     }
+  } finally {
+    loading.value = false
   }
 }
 </script>
@@ -92,7 +97,7 @@ async function submit() {
           </div>
         </div>
         
-        <Button label="Create Account" icon="pi pi-check-circle" @click="submit" class="w-full mt-4" size="large" />
+        <Button label="Create Account" icon="pi pi-check-circle" @click="submit" class="w-full mt-4" size="large" :loading="loading" />
         
         <div class="auth-footer">
           <span>Already have an account?</span>
