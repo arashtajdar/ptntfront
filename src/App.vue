@@ -131,11 +131,11 @@ function navigateToPage(path) {
         <i class="pi pi-bars"></i>
         <span>Menu</span>
       </button>
-      <button class="nav-btn nav-btn-primary" @click="navigateToPage('/')">
+      <button :class="['nav-btn', { 'nav-btn-primary': route.path === '/' }]" @click="navigateToPage('/')">
         <i class="pi pi-home"></i>
         <span>Home</span>
       </button>
-      <button class="nav-btn" @click="navigateToPage('/quiz')">
+      <button :class="['nav-btn', { 'nav-btn-primary': route.path === '/quiz' }]" @click="navigateToPage('/quiz')">
         <i class="pi pi-question"></i>
         <span>Quiz</span>
       </button>
