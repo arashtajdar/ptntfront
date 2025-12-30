@@ -9,6 +9,7 @@ import Skeleton from 'primevue/skeleton'
 import Tag from 'primevue/tag'
 import Dialog from 'primevue/dialog'
 import PageHeader from '../components/PageHeader.vue'
+import QuestionDisplay from '../components/QuestionDisplay.vue'
 
 const list = ref([])
 const loading = ref(false)
@@ -169,7 +170,9 @@ onMounted(async () => {
             <div class="card-header">
               <span class="id-badge">#{{ q.id }}</span>
               <div class="question-text-container">
-                <h3 class="question-text" :title="q.text">{{ q.text }}</h3>
+                <h3 class="question-text">
+                  <QuestionDisplay :text="q.text" :translations="q.translations" />
+                </h3>
                 <p v-if="showFarsi && q.text_fa" class="question-text-farsi">{{ q.text_fa }}</p>
               </div>
             </div>
@@ -219,7 +222,9 @@ onMounted(async () => {
         
         <div class="dialog-section">
           <span class="dialog-label">Question:</span>
-          <p class="dialog-text">{{ selectedQuestion.text }}</p>
+          <p class="dialog-text">
+            <QuestionDisplay :text="selectedQuestion.text" :translations="selectedQuestion.translations" />
+          </p>
           <p v-if="showFarsi && selectedQuestion.text_fa" class="dialog-text-farsi">{{ selectedQuestion.text_fa }}</p>
         </div>
 

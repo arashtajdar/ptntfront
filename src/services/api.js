@@ -1,4 +1,5 @@
-const BASE_URL = "https://ptnt-production.up.railway.app/api"
+const BASE_URL = import.meta.env.VITE_BASE_URL || "https://ptnt-production.up.railway.app/api"
+console.log('API BASE_URL:', BASE_URL)
 function authHeaders() {
   const token = localStorage.getItem('auth_token')
   return token ? { Authorization: `Bearer ${token}` } : {}
@@ -6,7 +7,7 @@ function authHeaders() {
 
 async function request(path, opts = {}) {
   const headers = Object.assign({ 'Accept': 'application/json' }, opts.headers || {}, authHeaders())
-  const res = await fetch("https://ptnt-production.up.railway.app/api" + path, Object.assign({}, opts, { headers }))
+  const res = await fetch(BASE_URL + path, Object.assign({}, opts, { headers }))
   if (res.status === 204) return null
   const text = await res.text()
   try { return JSON.parse(text) } catch { return text }

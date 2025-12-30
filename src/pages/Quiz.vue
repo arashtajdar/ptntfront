@@ -5,6 +5,7 @@ import Card from 'primevue/card'
 import Button from 'primevue/button'
 import PageHeader from '../components/PageHeader.vue'
 import ProgressBar from 'primevue/progressbar'
+import QuestionDisplay from '../components/QuestionDisplay.vue'
 
 const questions = ref([])
 const loading = ref(false)
@@ -152,7 +153,12 @@ async function submit() {
               
               <div class="question-text-wrapper">
                 <div>
-                  <h3 class="question-text">{{ questions[current].text }}</h3>
+                  <h3 class="question-text">
+                    <QuestionDisplay 
+                      :text="questions[current].text" 
+                      :translations="questions[current].translations" 
+                    />
+                  </h3>
                   <div v-if="showFarsi && questions[current].text_fa" class="farsi-section">
                     <p v-if="isFarsiRevealed" class="question-text-farsi">{{ questions[current].text_fa }}</p>
                     <Button 
