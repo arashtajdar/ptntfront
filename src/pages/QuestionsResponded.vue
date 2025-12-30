@@ -168,7 +168,6 @@ onMounted(async () => {
           
           <div class="card-content">
             <div class="card-header">
-              <span class="id-badge">#{{ q.id }}</span>
               <div class="question-text-container">
                 <h3 class="question-text">
                   <QuestionDisplay :text="q.text" :translations="q.translations" />
