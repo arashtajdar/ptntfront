@@ -162,10 +162,9 @@ async function submit() {
                   <div v-if="showFarsi && questions[current].text_fa" class="farsi-section">
                     <p v-if="isFarsiRevealed" class="question-text-farsi">{{ questions[current].text_fa }}</p>
                     <Button 
-                      v-else
-                      label="Reveal Translation" 
-                      icon="pi pi-eye" 
-                      @click="isFarsiRevealed = true"
+                      :label="isFarsiRevealed ? '' : 'Reveal Translation'" 
+                      :icon="isFarsiRevealed ? 'pi pi-eye-slash' : 'pi pi-eye'" 
+                      @click="isFarsiRevealed = !isFarsiRevealed"
                       class="reveal-btn"
                       size="small"
                       text

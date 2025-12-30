@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import api from '../services/api'
 import categoriesData from '../../categories.json'
 import PageHeader from '../components/PageHeader.vue'
+import QuestionDisplay from '../components/QuestionDisplay.vue'
 
 const images = ref([])
 const loading = ref(false)
@@ -224,14 +225,12 @@ function clearSelection() {
       <div class="questions-list">
         <div v-for="question in selectedQuestions" :key="question.id" class="question-card">
           <div class="question-header">
-            <p class="question-text">{{ question.text }}</p>
+            <p class="question-text">
+              <QuestionDisplay :text="question.text" :translations="question.translations" />
+            </p>
             <span class="answer-badge" :class="{ 'answer-true': question.answer.toUpperCase() === 'V', 'answer-false': question.answer.toUpperCase() === 'F' }">
               {{ question.answer.toUpperCase() === 'V' ? 'TRUE' : 'FALSE' }}
             </span>
-          </div>
-          <div class="question-details">
-            <span v-if="question.parent_number" class="detail-item">Parent: {{ question.parent_number }}</span>
-            <span v-if="question.question_number" class="detail-item">Question #: {{ question.question_number }}</span>
           </div>
         </div>
       </div>
