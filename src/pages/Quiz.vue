@@ -69,9 +69,9 @@ onUnmounted(() => {
   stopTimer()
 })
 
-async function gen() {
+async function gen(type = null) {
   loading.value = true
-  const res = await api.generateQuiz(30)
+  const res = await api.generateQuiz(30, type)
   if (Array.isArray(res)) {
     questions.value = res.map(q => ({ ...q }))
     current.value = 0
@@ -114,14 +114,35 @@ async function submit() {
       <template #title>
         <div class="quiz-header">
           <div v-if="!questions.length" class="start-btn-container">
-            <Button 
-              label="Start New Quiz" 
-              icon="pi pi-play" 
-              @click="gen" 
-              severity="primary"
-              rounded
-              size="large"
-            />
+            <div class="quiz-options-grid">
+              <Button 
+                label="Random Quiz" 
+                icon="pi pi-bolt" 
+                @click="gen('random')" 
+                severity="primary"
+                rounded
+                size="large"
+                class="premium-btn btn-random"
+              />
+              <Button 
+                label="Review Errors" 
+                icon="pi pi-exclamation-circle" 
+                @click="gen('wrong')" 
+                severity="danger"
+                rounded
+                size="large"
+                class="premium-btn btn-wrong"
+              />
+              <Button 
+                label="New Questions" 
+                icon="pi pi-plus-circle" 
+                @click="gen('never_answered')" 
+                severity="success"
+                rounded
+                size="large"
+                class="premium-btn btn-new"
+              />
+            </div>
           </div>
           <div v-else class="header-content">
             <div class="progress-container">
@@ -309,7 +330,8 @@ async function submit() {
           </div>
 
           <div class="result-actions">
-            <Button label="Start New Quiz" icon="pi pi-refresh" @click="gen" size="large" severity="primary" raised />
+            <Button label="Random Quiz" icon="pi pi-refresh" @click="gen('random')" size="large" severity="primary" raised />
+            <Button label="Review More Errors" icon="pi pi-exclamation-triangle" @click="gen('wrong')" size="large" severity="danger" raised outlined />
           </div>
         </div>
       </template>
@@ -343,7 +365,41 @@ async function submit() {
   display: flex;
   justify-content: center;
   width: 100%;
-  padding: 2rem 0;
+  padding: 3rem 0;
+}
+
+.quiz-options-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 400px;
+}
+
+.premium-btn {
+  padding: 1.25rem 2rem !important;
+  font-size: 1.1rem !important;
+  font-weight: 600 !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  border: none !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.premium-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.btn-random {
+  background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%) !important;
+}
+
+.btn-wrong {
+  background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%) !important;
+}
+
+.btn-new {
+  background: linear-gradient(135deg, #22c55e 0%, #15803d 100%) !important;
 }
 
 .header-content {

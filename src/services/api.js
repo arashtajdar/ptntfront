@@ -44,8 +44,10 @@ export default {
   async listFlashcards(page = 1, per_page = 10) {
     return request(`/flashcards?page=${page}&per_page=${per_page}`)
   },
-  async generateQuiz(count = 30) {
-    return request(`/quiz?count=${count}`)
+  async generateQuiz(count = 30, type = null) {
+    const qs = new URLSearchParams({ count })
+    if (type) qs.append('type', type)
+    return request(`/quiz?${qs.toString()}`)
   },
   async submitQuiz(payload) {
     return request('/quiz/submit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
