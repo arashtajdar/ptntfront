@@ -6,7 +6,8 @@ import PageHeader from '../components/PageHeader.vue'
 import QuestionDisplay from '../components/QuestionDisplay.vue'
 
 const images = ref([])
-const loading = ref(false)
+const loading = ref(true) // Start with loading true
+const error = ref(null) // Track errors
 const selectedImage = ref(null)
 const selectedQuestions = ref([])
 const cacheExpiry = ref(null)
@@ -85,46 +86,73 @@ onMounted(async () => {
 })
 
 async function fetchImages() {
-  // Try to get from local cache first
-  const cachedData = getFromCache()
-  if (cachedData) {
-    // Sort images by name (natural number sort)
-    images.value = cachedData.sort((a, b) => {
-      return a.image.localeCompare(b.image, undefined, { numeric: true })
-    })
-    updateCacheExpiry()
-    return
-  }
-
+  error.value = null
   loading.value = true
+  
   try {
+    // Try to get from local cache first
+    const cachedData = getFromCache()
+    if (cachedData && Array.isArray(cachedData) && cachedData.length > 0) {
+      // Sort images by name (natural number sort)
+      images.value = [...cachedData].sort((a, b) => {
+        return a.image.localeCompare(b.image, undefined, { numeric: true })
+      })
+      updateCacheExpiry()
+      loading.value = false
+      return
+    }
+
     const response = await api.getImagesList()
+    // Handle case where response might be an error message or invalid
+    if (!response || typeof response !== 'object') {
+      throw new Error('Invalid response from server')
+    }
+
     const fetchedImages = response.images || []
+    if (!Array.isArray(fetchedImages)) {
+      throw new Error('Images data is not an array')
+    }
+
     // Sort images by name (natural number sort)
-    images.value = fetchedImages.sort((a, b) => {
+    images.value = [...fetchedImages].sort((a, b) => {
       return a.image.localeCompare(b.image, undefined, { numeric: true })
     })
+    
     // Save to cache
     saveToCache(images.value)
     updateCacheExpiry()
-  } catch (error) {
-    console.error('Error fetching images:', error)
+  } catch (err) {
+    console.error('Error fetching images:', err)
+    error.value = 'Failed to load images. Please check your connection and try again.'
+    // If cache was corrupted, clear it
+    localStorage.removeItem(CACHE_KEY)
   } finally {
     loading.value = false
   }
 }
 
 function getFromCache() {
-  const cached = localStorage.getItem(CACHE_KEY)
-  if (!cached) return null
+  try {
+    const cached = localStorage.getItem(CACHE_KEY)
+    if (!cached) return null
 
-  const { data, expiry } = JSON.parse(cached)
-  if (Date.now() > expiry) {
+    const parsed = JSON.parse(cached)
+    if (!parsed || typeof parsed !== 'object') return null
+    
+    const { data, expiry } = parsed
+    if (!data || !expiry) return null
+
+    if (Date.now() > expiry) {
+      localStorage.removeItem(CACHE_KEY)
+      return null
+    }
+
+    return data
+  } catch (e) {
+    console.error('Error reading from cache:', e)
     localStorage.removeItem(CACHE_KEY)
     return null
   }
-
-  return data
 }
 
 function saveToCache(data) {
@@ -169,11 +197,28 @@ function clearSelection() {
   <div class="images-container">
     <PageHeader title="Questions by Image" subtitle="Browse traffic signs and their related questions" />
     
-    <div v-if="loading" class="loading">
-      <p>Loading images...</p>
+    <div v-if="loading" class="loading-state">
+      <i class="pi pi-spin pi-spinner"></i>
+      <p>Loading signals...</p>
     </div>
 
-    <div v-if="!loading && !selectedImage" class="categories-container">
+    <div v-else-if="error" class="error-state">
+      <i class="pi pi-exclamation-circle"></i>
+      <p>{{ error }}</p>
+      <button @click="refreshCache" class="retry-btn">
+        <i class="pi pi-refresh"></i> Retry
+      </button>
+    </div>
+
+    <div v-else-if="!selectedImage" class="categories-container">
+      <div class="list-header">
+        <p v-if="cacheExpiry" class="cache-info">
+          <i class="pi pi-clock"></i> Cached until {{ cacheExpiry }}
+          <button @click="refreshCache" class="refresh-cache-btn" title="Refresh local cache">
+            <i class="pi pi-refresh"></i>
+          </button>
+        </p>
+      </div>
       <!-- Category Filter Navigation -->
       <div class="category-filter-nav">
         <button 
@@ -193,7 +238,11 @@ function clearSelection() {
       </div>
 
       <div v-if="images.length === 0" class="no-images">
-        <p>No images found</p>
+        <i class="pi pi-info-circle"></i>
+        <p>No signals found.</p>
+        <button @click="refreshCache" class="retry-btn">
+          <i class="pi pi-refresh"></i> Refresh
+        </button>
       </div>
       
       <div v-for="category in filteredImages" :key="category.name" class="category-section">
@@ -251,16 +300,78 @@ h2 {
   font-size: 1.5rem;
 }
 
-.loading {
+.loading-state, .error-state, .no-images {
   text-align: center;
-  padding: 48px 24px;
-  color: #666;
+  padding: 64px 24px;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e0e6ed;
+  margin-bottom: 32px;
 }
 
-.no-images {
-  text-align: center;
-  padding: 48px 24px;
-  color: #999;
+.loading-state i, .error-state i, .no-images i {
+  font-size: 2.5rem;
+  margin-bottom: 16px;
+}
+
+.loading-state i { color: #007acc; }
+.error-state i { color: #d32f2f; }
+.no-images i { color: #666; }
+
+.loading-state p, .error-state p, .no-images p {
+  font-size: 1.1rem;
+  color: #444;
+  margin: 0 0 24px 0;
+}
+
+.retry-btn {
+  background: #007acc;
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.retry-btn:hover {
+  background: #005fa3;
+  transform: translateY(-2px);
+}
+
+.list-header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 16px;
+}
+
+.cache-info {
+  font-size: 0.8rem;
+  color: #888;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+}
+
+.refresh-cache-btn {
+  background: none;
+  border: none;
+  color: #007acc;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.refresh-cache-btn:hover {
+  background: #f0f4f8;
 }
 
 .categories-container {
@@ -350,7 +461,6 @@ h2 {
 .image-wrapper {
   width: 100%;
   aspect-ratio: 16 / 9;
-  background: #f5f5f5;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -380,6 +490,7 @@ h2 {
   margin: 0;
   font-size: 0.875rem;
   color: #666;
+  text-align: center;
 }
 
 .questions-view {
@@ -393,7 +504,6 @@ h2 {
   width: 100%;
   max-width: 400px;
   margin: 0 auto 32px;
-  background: #f5f5f5;
   border-radius: 8px;
   padding: 12px;
   display: flex;
